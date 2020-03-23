@@ -10,13 +10,18 @@
     el-form-item(label="密码")
       el-input(type="password")
     el-form-item
-      el-button(type="primary" @click="$router.replace('/home')") 登录
+      el-button(type="primary" @click="handleLogin") 登录
 </template>
 
 <script>
 export default {
   mounted () {
-    this.$message.success('成功')
+  },
+  methods: {
+    handleLogin () {
+      localStorage.setItem('token', 123)
+      this.$router.push('/home')
+    }
   }
 }
 </script>

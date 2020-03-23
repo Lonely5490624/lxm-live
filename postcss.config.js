@@ -3,7 +3,8 @@ module.exports = {
     autoprefixer: {},
     'postcss-plugin-px2rem': {
       rootValue: 100,
-      exclude: /node_modules/
+      exclude: /node_modules/,
+      minPixelValue: 2
     }
   }
 }

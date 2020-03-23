@@ -1,11 +1,18 @@
 <style lang="stylus" scoped>
 .home
   height 100%
-  border 1px solid 
+  display flex
+  flex-direction column
+  .home-drag
+    height 100%
+    border 1px solid #f00
+    position relative
 </style>
 <template lang="pug">
 .home
-  DragBox
+  router-link(to="/about") about
+  .home-drag
+    DragBox
 </template>
 
 <script>
