@@ -26,6 +26,6 @@ module.exports = {
   },
   // 这里过滤不需要检查的全局变量
   "globals": {
-      // "jQuery": "readonly"
+      "TK": "readonly"
   }
 }

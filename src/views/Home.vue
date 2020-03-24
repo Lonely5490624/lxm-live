@@ -2,7 +2,12 @@
 .home
   height 100%
   display flex
-  flex-direction column
+  .home-nav
+    width 250px
+    background-color #ccc
+    overflow auto
+  .home-content
+    width 100%
   .home-drag
     height 100%
     border 1px solid #f00
@@ -10,19 +15,40 @@
 </style>
 <template lang="pug">
 .home
-  router-link(to="/about") about
-  .home-drag
-    DragBox
+  .home-nav
+    Nav(:filterRoutes="filterRoutes")
+  .home-content
+    router-view
 </template>
 
 <script>
 // @ is an alias to /src
-import DragBox from '@/components/common/DragBox.vue'
+import { routes } from '@/router'
+import Nav from '@/components/common/Nav'
+import DragBox from '@/components/common/DragBox'
 
 export default {
   name: 'Home',
   components: {
+    Nav,
     DragBox
+  },
+  data () {
+    const role = localStorage.getItem('role')
+    const filterRoutes = routes.filter(item => {
+      const { permission } = item
+      return !permission || permission.includes(role)
+    })
+    return {
+      filterRoutes
+    }
+  },
+  methods: {
+    setVuex () {
+      this.$store.commit('user/setUserData', {
+        userData: '哈哈'
+      })
+    }
   }
 }
 </script>

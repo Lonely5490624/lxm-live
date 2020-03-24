@@ -1,17 +1,25 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import { Message } from 'element-ui'
-import Home from '@/views/Home.vue'
-import Login from '@/views/Login.vue'
-import AboutList from '@/views/about/List.vue'
+import Home from '@/views/Home'
+import Login from '@/views/Login'
+import Classroom from '@/views/Classroom'
+import Manage from '@/views/manage/Index'
+import ClassroomList from '@/views/manage/ClassroomList'
+import TeacherList from '@/views/manage/TeacherList'
+import AboutList from '@/views/about/List'
 import NotFound from '@/views/404'
 
 Vue.use(VueRouter)
 
-const routes = [
+/**
+ * 路由的集合
+ * label 导航名称，如果有，则有导航，否则没有导航
+ * permission 角色权限的数组，里面含有的角色才能跳转，如果没有则表示所有角色均可跳转
+ */
+export const routes = [
   {
     path: '/',
-    name: 'Login',
     component: Login,
     beforeEnter (to, from, next) {
       // 如果存在token，则跳转到首页
@@ -24,19 +32,43 @@ const routes = [
   },
   {
     path: '/home',
-    name: 'Home',
-    component: Home
+    label: '首页',
+    component: Home,
+    permission: ['teacher', 'student'],
+    children: [
+      {
+        path: '/home/index',
+        label: '管理',
+        component: Manage
+      },
+      {
+        path: '/home/classroom-list',
+        label: '教室管理',
+        component: ClassroomList
+      },
+      {
+        path: '/home/teacher-list',
+        label: '老师管理',
+        component: TeacherList
+      }
+    ]
+  },
+  {
+    path: '/classroom',
+    component: Classroom
   },
   {
     path: '/about',
-    name: 'About',
+    label: '关于我们',
     // route level code-splitting
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
     component: () => import(/* webpackChunkName: "about" */ '@/views/about/Index.vue'),
+    permission: ['teacher'],
     children: [{
       path: 'list',
       name: 'AboutList',
+      label: '关于列表',
       component: AboutList
     }]
   },
@@ -60,14 +92,21 @@ const router = new VueRouter({
  * 如果不存在token，则跳转到首页，并弹出错误
  */
 router.beforeEach((to, from, next) => {
-  if (localStorage.getItem('token')) {
+  if (to.path === '/') {
     next()
   } else {
-    if (to.path === '/') {
-      next()
+    if (localStorage.getItem('token')) {
+      // 判断路由的权限
+      const role = localStorage.getItem('role')
+      const { permission } = to
+      if (!permission || permission.includes(role)) {
+        next()
+      } else {
+        next('/')
+      }
     } else {
-      Message.error('请重新登录')
-      next('/')
+        Message.error('请重新登录')
+        next('/')
     }
   }
 })
