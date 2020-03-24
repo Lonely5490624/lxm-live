@@ -10,7 +10,6 @@
 <script>
 export default {
   async mounted () {
-    // console.log(11111, this.$axios)
     const res = await this.$axios.get('http://test.baigonglian.com:10005/mvp/solution/findAllSolutionSort')
     console.log(res)
   }

@@ -7,7 +7,6 @@ import Classroom from '@/views/Classroom'
 import Manage from '@/views/manage/Index'
 import ClassroomList from '@/views/manage/ClassroomList'
 import TeacherList from '@/views/manage/TeacherList'
-import AboutList from '@/views/about/List'
 import NotFound from '@/views/404'
 
 Vue.use(VueRouter)
@@ -34,6 +33,7 @@ export const routes = [
     path: '/home',
     label: '首页',
     component: Home,
+    redirect: '/home/index',
     permission: ['teacher', 'student'],
     children: [
       {
@@ -56,21 +56,6 @@ export const routes = [
   {
     path: '/classroom',
     component: Classroom
-  },
-  {
-    path: '/about',
-    label: '关于我们',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '@/views/about/Index.vue'),
-    permission: ['teacher'],
-    children: [{
-      path: 'list',
-      name: 'AboutList',
-      label: '关于列表',
-      component: AboutList
-    }]
   },
   {
     path: '*',
