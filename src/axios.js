@@ -29,8 +29,11 @@ ajax.interceptors.response.use(function (response) {
   // 对响应数据做点什么
   const data = response.data
   if (data.code === 405) {
-    location.href = '/'
+    localStorage.removeItem('token')
     Message.error(data.msg)
+    setTimeout(() => {
+      location.href = '/'
+    }, 2000)
   }
   return data
 }, function (error) {
