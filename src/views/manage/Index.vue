@@ -9,9 +9,15 @@ el-button(type="primary" @click="handleLogout") 退出登录
 <script>
 export default {
   methods: {
-    handleLogout () {
-      localStorage.removeItem('token')
-      this.$router.replace('/')
+    async handleLogout () {
+      const res = await this.$axios.post('logout')
+      if (res.code === 200) {
+        localStorage.removeItem('token')
+        this.$router.replace('/')
+        this.$message.success(res.msg)
+      } else {
+        this.$message.error(res.msg)
+      }
     }
   }
 }

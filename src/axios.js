@@ -1,7 +1,23 @@
 import axios from 'axios'
+import { Message } from 'element-ui'
 
-axios.interceptors.request.use(function (config) {
+const url = {
+  development: 'http://localhost:3333/',
+  production: ''
+}
+
+const baseUrl = url[process.env.NODE_ENV]
+
+const ajax = axios.create({
+  withCredentials: true
+})
+
+ajax.interceptors.request.use(function (config) {
   // 在发送请求之前做些什么
+  config.url = baseUrl + config.url
+  if (localStorage.getItem('token')) {
+    config.headers.Authorization = `Bearer ${localStorage.getItem('token')}`
+  }
   return config
 }, function (error) {
   // 对请求错误做些什么
@@ -9,12 +25,17 @@ axios.interceptors.request.use(function (config) {
 })
 
 // 添加响应拦截器
-axios.interceptors.response.use(function (response) {
+ajax.interceptors.response.use(function (response) {
   // 对响应数据做点什么
-  return response.data
+  const data = response.data
+  if (data.code === 405) {
+    location.href = '/'
+    Message.error(data.msg)
+  }
+  return data
 }, function (error) {
   // 对响应错误做点什么
   return Promise.reject(error)
 })
 
-export default axios
+export default ajax

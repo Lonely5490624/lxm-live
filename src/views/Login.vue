@@ -18,9 +18,19 @@ export default {
   mounted () {
   },
   methods: {
-    handleLogin () {
-      localStorage.setItem('token', 123)
-      this.$router.push('/home')
+    async handleLogin () {
+      const params = {
+        username: 'lilong',
+        password: '123456'
+      }
+      const res = await this.$axios.post('login', params)
+      if (res.code === 200) {
+        localStorage.setItem('token', res.data.token)
+        localStorage.setItem('role', res.data.role)
+        this.$router.push('/home')
+      } else {
+        this.$message.error(res.msg)
+      }
     }
   }
 }
