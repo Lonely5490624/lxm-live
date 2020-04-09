@@ -1,6 +1,7 @@
 import Vue from 'vue'
 
 import '@/assets/rem.js'
+import filters from '@/utils/filters'
 
 import ElementUI from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css'
@@ -13,6 +14,11 @@ import ajax from './axios'
 import 'reset.css'
 import '@/styles/main.styl'
 import '@/styles/variable.styl'
+import '@/styles/icomoon.css'
+
+Object.keys(filters).forEach(filter => {
+  Vue.filter(filter, filters[filter])
+})
 
 Vue.prototype.$axios = ajax
 

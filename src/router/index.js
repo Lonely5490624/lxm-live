@@ -15,6 +15,7 @@ Vue.use(VueRouter)
  * 路由的集合
  * label 导航名称，如果有，则有导航，否则没有导航
  * permission 角色权限的数组，里面含有的角色才能跳转，如果没有则表示所有角色均可跳转
+ * 0：老师 1：助教 2：学员 4：巡课 5：课程管理员 12：管理员 99：超级管理员
  */
 export const routes = [
   {
@@ -34,7 +35,7 @@ export const routes = [
     label: '首页',
     component: Home,
     redirect: '/home/index',
-    permission: ['teacher', 'student'],
+    permission: [0, 2],
     children: [
       {
         path: '/home/index',
@@ -82,7 +83,7 @@ router.beforeEach((to, from, next) => {
   } else {
     if (localStorage.getItem('token')) {
       // 判断路由的权限
-      const role = localStorage.getItem('role')
+      const role = +localStorage.getItem('role')
       const { permission } = to
       if (!permission || permission.includes(role)) {
         next()

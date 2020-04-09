@@ -2,7 +2,7 @@ import axios from 'axios'
 import { Message } from 'element-ui'
 
 const url = {
-  development: 'http://localhost:3333/',
+  development: 'http://192.168.3.128:3333/',
   production: ''
 }
 
@@ -14,10 +14,13 @@ const ajax = axios.create({
 
 ajax.interceptors.request.use(function (config) {
   // 在发送请求之前做些什么
-  config.url = baseUrl + config.url
+  if (!/^http/.test(config.url)) {
+    config.url = baseUrl + config.url
+  }
   if (localStorage.getItem('token')) {
     config.headers.Authorization = `Bearer ${localStorage.getItem('token')}`
   }
+  console.log(111111, config)
   return config
 }, function (error) {
   // 对请求错误做些什么

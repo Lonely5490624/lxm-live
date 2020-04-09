@@ -1,5 +1,9 @@
 <style lang="stylus" scoped>
-
+.test-em
+  font-family 'icomoon'
+  &::after
+    content "\e947"
+    color #f00
 </style>
 
 <template lang="pug">
@@ -9,6 +13,7 @@
       el-input 哈哈
     el-form-item(label="密码")
       el-input(type="password")
+    em.test-em
     el-form-item
       el-button(type="primary" @click="handleLogin") 登录
 </template>

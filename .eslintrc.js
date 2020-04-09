@@ -18,7 +18,7 @@ module.exports = {
       "eol-last": ["error", "never"],
       eqeqeq: ["error", "always"],
       quotes: ["error", "single"],
-      semi: ["error", "never"],
+    //   semi: ["error", "never"],
       "comma-dangle": ["error", "never"],
       "no-multi-spaces": "error",
       "no-multi-str": "error"

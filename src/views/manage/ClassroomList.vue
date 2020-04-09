@@ -4,6 +4,7 @@
 
 <template lang="pug">
 .classroom-list 我是教室列表
+  p {{'李龙' | convertName}}
   router-link(to="/classroom/234") 进入教室
 </template>
 

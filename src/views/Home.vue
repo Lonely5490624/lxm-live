@@ -34,7 +34,7 @@ export default {
     DragBox
   },
   data () {
-    const role = localStorage.getItem('role')
+    const role = +localStorage.getItem('role')
     const filterRoutes = routes.filter(item => {
       const { permission } = item
       return !permission || permission.includes(role)
