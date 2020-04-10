@@ -20,7 +20,6 @@ ajax.interceptors.request.use(function (config) {
   if (localStorage.getItem('token')) {
     config.headers.Authorization = `Bearer ${localStorage.getItem('token')}`
   }
-  console.log(111111, config)
   return config
 }, function (error) {
   // 对请求错误做些什么

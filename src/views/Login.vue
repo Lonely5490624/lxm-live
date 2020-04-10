@@ -1,41 +1,85 @@
 <style lang="stylus" scoped>
-.test-em
-  font-family 'icomoon'
-  &::after
-    content "\e947"
-    color #f00
+// .test-em
+//   font-family 'icomoon'
+//   &::after
+//     content "\e947"
+//     color #f00
+.login
+  width 100%
+  height 100%
+  position relative
+  .login-main
+    width 520px
+    border 10px solid #ffcb00
+    border-radius 40px
+    border-top-width 14px
+    position fixed
+    left 50%
+    top 50%
+    transform translate(-50%, -50%)
+    padding-top 30px
+    background-color #fff
+    .login-main-circles
+      display flex
+      position absolute
+      width 290px
+      justify-content space-between
+      top -25px
+      left 50%
+      transform translateX(-50%)
+      .circle-item
+        width 20px
+        height 20px
+        border-radius 10px
+        background-color #fdb903
+</style>
+<style lang="stylus">
+body
+  background url('../assets/images/login_bg.png') center no-repeat
+  background-size 100%
+.slide-left-enter-active, .slide-left-leave-active
+  transition all .6s
+.slide-left-enter, .slide-left-leave-to
+  margin-left -520px
+  opacity 0
+.slide-right-enter-active, .slide-right-leave-active
+  transition all .6s
+.slide-right-enter, .slide-right-leave-to
+  margin-left 520px
+  opacity 0
 </style>
 
 <template lang="pug">
 .login
-  el-form(label-width="100px")
-    el-form-item(label="用户名")
-      el-input 哈哈
-    el-form-item(label="密码")
-      el-input(type="password")
-    em.test-em
-    el-form-item
-      el-button(type="primary" @click="handleLogin") 登录
+  transition(name="slide-left")
+    .login-main(v-if="currentCom === 'register'")
+      .login-main-circles
+        .circle-item(v-for="item in [1,2,3,4,5,6,7]" :key="item")
+      Register(@jumpTo="jumpTo")
+  transition(name="slide-right")
+    .login-main(v-if="currentCom === 'login'")
+      .login-main-circles
+        .circle-item(v-for="item in [1,2,3,4,5,6,7]" :key="item")
+      Login(@jumpTo="jumpTo")
 </template>
 
 <script>
+import Register from '@/components/login/Register'
+import Login from '@/components/login/Login'
+
 export default {
-  mounted () {
+  components: {
+    Register,
+    Login
+  },
+  data () {
+    return {
+      currentCom: 'login'
+    }
   },
   methods: {
-    async handleLogin () {
-      const params = {
-        username: 'lilong',
-        password: '123456'
-      }
-      const res = await this.$axios.post('login', params)
-      if (res.code === 200) {
-        localStorage.setItem('token', res.data.token)
-        localStorage.setItem('role', res.data.role)
-        this.$router.push('/home')
-      } else {
-        this.$message.error(res.msg)
-      }
+    jumpTo (to) {
+      this.currentCom = to
     }
   }
 }
