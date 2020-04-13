@@ -140,10 +140,10 @@
       input.username(type="text" placeholder="请输入6-12位英文组合的用户名" v-model="username" maxlength="12" @input="usernameChanged" @blur="usernameChanged")
       .input-status(:class="errorInfo.username === 1 ? 'error' : errorInfo.username === 2 ? 'right' : ''")
     .register-item
-      input.mobile(type="number" placeholder="请输入手机号" v-model="mobile" max="19999999999" @input="mobileChanged" @blur="mobileChanged")
+      input.mobile(type="tel" placeholder="请输入手机号" maxlength="11" v-model="mobile" @input="mobileChanged" @blur="mobileChanged")
       .input-status(:class="errorInfo.mobile === 1 ? 'error' : errorInfo.mobile === 2 ? 'right' : ''")
     .register-item
-      input.sms-code(type="number" placeholder="请输入验证码" v-model="smsCode" maxlength="4" @input="smsCodeChanged" @blur="smsCodeChanged")
+      input.sms-code(type="number" placeholder="请输入验证码" v-model="smsCode" @input="smsCodeChanged" @blur="smsCodeChanged")
       button.sms-btn(:class="smsSending ? 'disabled' : ''" @click="getSmsCode") {{smsSending ? `重新发送(${initTime}S)` : smsBtnText}}
       .input-status(:class="errorInfo.smsCode === 1 ? 'error' : errorInfo.smsCode === 2 ? 'right' : ''")
     .register-item
@@ -160,7 +160,7 @@
       label(for="deal")
       | 我已阅读并接受#[span(@click="showDeal = true") 《用户协议》]
     .register-item
-      button.lxm-btn(@click="register" :class="{disabled: regsiterDisabled}") 注册
+      LxmBtn(:type="regsiterDisabled ? 'disable' : ''" @onClick="register") 注册
     .register-item.to-login 已有账号，#[span(@click="jumpLogin") 马上登录]
   el-dialog(
     :visible.sync="showDeal"
@@ -188,13 +188,15 @@
 </template>
 
 <script>
+import LxmBtn from '@/components/common/LxmBtn'
 import Close from '@/components/common/Close'
 import checkRules from '@/utils/checkRules'
 
-const initTime = 3
+const initTime = 60
 
 export default {
   components: {
+    LxmBtn,
     Close
   },
   data () {
@@ -337,7 +339,7 @@ export default {
       }
       this.smsDisabled = true
       const res = await this.$axios.post('regSmsCode', params)
-      if (res.code === 400) {
+      if (res.code === 200) {
         this.smsSending = true
         this.timer = setInterval(() => {
           this.initTime = this.initTime - 1

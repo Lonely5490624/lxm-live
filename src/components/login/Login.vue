@@ -46,11 +46,16 @@
       .ctrl-btn(@click="jumpRegister") 账号注册
       .ctrl-btn(@click="jumpFindPwd") 忘记密码？
     .login-item
-      button.lxm-btn(@click="login" :class="{disabled: loginDisabled}") 登录
+      LxmBtn(:type="loginDisabled ? 'disable' : ''" @onClick="login") 登录
 </template>
 
 <script>
+import LxmBtn from '@/components/common/LxmBtn'
+
 export default {
+  components: {
+    LxmBtn
+  },
   data () {
     return {
       errorMsg: '',

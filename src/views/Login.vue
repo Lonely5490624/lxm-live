@@ -56,25 +56,32 @@ body
       .login-main-circles
         .circle-item(v-for="item in [1,2,3,4,5,6,7]" :key="item")
       Register(@jumpTo="jumpTo")
-  transition(name="slide-right")
+  transition(name="slide-left")
     .login-main(v-if="currentCom === 'login'")
       .login-main-circles
         .circle-item(v-for="item in [1,2,3,4,5,6,7]" :key="item")
       Login(@jumpTo="jumpTo")
+  transition(name="slide-right")
+    .login-main(v-if="currentCom === 'findPwd'")
+      .login-main-circles
+        .circle-item(v-for="item in [1,2,3,4,5,6,7]" :key="item")
+      FindPwd(@jumpTo="jumpTo")
 </template>
 
 <script>
 import Register from '@/components/login/Register'
 import Login from '@/components/login/Login'
+import FindPwd from '@/components/login/FindPwd'
 
 export default {
   components: {
     Register,
-    Login
+    Login,
+    FindPwd
   },
   data () {
     return {
-      currentCom: 'login'
+      currentCom: 'findPwd'
     }
   },
   methods: {
