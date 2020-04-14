@@ -8,6 +8,8 @@ import Manage from '@/views/manage/Index'
 import ClassroomList from '@/views/manage/ClassroomList'
 import TeacherList from '@/views/manage/TeacherList'
 import NotFound from '@/views/404'
+import Stu from '@/views/student/Index'
+import StuHome from '@/views/student/Home'
 
 Vue.use(VueRouter)
 
@@ -29,6 +31,17 @@ export const routes = [
         next()
       }
     }
+  },
+  {
+    path: '/stu',
+    label: '学生',
+    component: Stu,
+    redirect: '/stu/home',
+    children: [{
+      path: '/stu/home',
+      label: '学生主页',
+      component: StuHome
+    }]
   },
   {
     path: '/home',

@@ -46,10 +46,12 @@
     position absolute
     left 50%
     top 0
+    width 100%
     z-index 2
     line-height 50px
     transform translateX(-50%)
     color #ffffff
+    text-align center
 </style>
 
 <template lang="pug">
