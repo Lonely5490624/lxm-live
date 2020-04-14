@@ -177,6 +177,28 @@
           left 0
           bottom -10px
           z-index -1
+        // 未上试听课
+        &.unsign
+          .unsign-box
+            padding 116px 55px
+            line-height 36px
+            font-size 18px
+            color #666666
+        // 已上试听课，未报名
+        &.to-sign
+          text-align center
+          .to-sign-img
+            font-size 18px
+            font-weight bold
+            color #FFFFFF
+            width 176px
+            height 110px
+            line-height 110px
+            background url('../../assets/images/lxm_earth.png')  center no-repeat
+            background-size  100%
+            margin 58px auto 0
+          .lxm-btn
+            margin-top 80px
     .main-evaluate
       width 430px
       padding 14px 16px 16px
@@ -286,6 +308,48 @@
           font-size 20px
           color #ffffff
           text-align center
+        &.evaluate-box-no
+          text-align center
+          padding-bottom 40px
+          .evaluate-title
+            text-align center
+            padding-top 10px
+            span
+              display inline-block
+              font-size 30px
+              color $fontColor
+              font-weight bold
+              position relative
+              &::before, &::after
+                content ""
+                position absolute
+                width 22px
+                height 6px
+                border-radius 3px
+                background-color #fed29f
+                top 50%
+                transform translateY(-50%)
+              &::before
+                left -37px
+              &::after
+                right -37px
+          .evaluate-sub-title
+            color #666666
+            font-size 18px
+            margin-top 20px
+          .evaluate-img-edit
+            margin 35px auto 0
+            width 64px
+            display block
+          .evaluate-btn-start
+            width 240px
+            margin-top 40px
+          .evaluate-tips
+            font-size 14px
+            color #999999
+            margin-top 16px
+
+
       &::after
         content ""
         width 100%
@@ -345,29 +409,40 @@
           img(src="../../assets/images/lxm_1.png")
         .header-top
           .top-inner
-      .room-content
+      //- .room-content
+      //-   .room-title
+      //-     span 我的课程
+      //-   .room-history 历史课程
+      //-   .room-list
+      //-     .room-item(v-for="item in roomList" :key="item.serial" :class="{not: item.starttime > Math.round(Date.now()/1000)}")
+      //-       .item-title {{item.course_name}}
+      //-       .item-info
+      //-         .item-time
+      //-           | {{item.starttime | formatDatetimeNoSecond}}
+      //-           br
+      //-           | {{item.endtime | formatDatetimeNoSecond}}
+      //-         .item-teacher {{item.teacher_name}}
+      //-         .item-btn
+      //-           LxmBtn.btn-start(v-if="item.starttime <= Math.round(Date.now()/1000)") 进入课程
+      //-           LxmBtn.btn-start(v-else type="disable") 未开始
+      //- .room-content.unsign
+      //-   .room-title
+      //-     span 我的课程
+      //-   .unsign-box
+      //-     p 恭喜您，您获得了一次免费试听课的机会，稍后会有课程顾问会通过电话联系您，请耐心等待......
+      .room-content.to-sign
         .room-title
           span 我的课程
-        .room-history 历史课程
-        .room-list
-          .room-item(v-for="item in roomList" :key="item.serial" :class="{not: item.starttime > Math.round(Date.now()/1000)}")
-            .item-title {{item.course_name}}
-            .item-info
-              .item-time
-                | {{item.starttime | formatDatetimeNoSecond}}
-                br
-                | {{item.endtime | formatDatetimeNoSecond}}
-              .item-teacher {{item.teacher_name}}
-              .item-btn
-                LxmBtn.btn-start(v-if="item.starttime <= Math.round(Date.now()/1000)") 进入课程
-                LxmBtn.btn-start(v-else type="disable") 未开始
+        .to-sign-box
+          .to-sign-img 还未报名
+          LxmBtn 点我报名
     .main-evaluate
       .evaluate-header
         .header-circles
           .circle-item(v-for="item in [1,2,3,4,5,6,7]" :key="item")
         .header-bird
           img(src="../../assets/images/lxm_bird.png")
-      .evaluate-box
+      .evaluate-box(v-if="abilityList.length")
         .evaluate-age
           template(v-for="item in ageList")
             .age-item(:key="item.value" v-if="checkAge(item)" :class="{active: age === item.value}" @click="handleClickAge(item)") {{item.label}}
@@ -398,6 +473,13 @@
         .evaluate-chart
           #chart.chart(ref="evaluateChart")
         .evaluate-tag 测评
+      .evaluate-box.evaluate-box-no(v-else)
+        .evaluate-title
+          span 参加入学测评
+        p.evaluate-sub-title 宝贝可以加入更符合自己水平的课程哦~
+        img.evaluate-img-edit(src="../../assets/images/lxm_edit.png")
+        LxmBtn.evaluate-btn-start(type="cancel") 开始测评
+        p.evaluate-tips *温馨提示：请家长陪同孩子完成测评
       .evaluate-img
         img(src="../../assets/images/lxm_2.png")
   .stu-ctrl
@@ -484,47 +566,49 @@ export default {
   async beforeMount () {
     this.handleRefresh()
   },
-  mounted () {
-    this.radar = echarts.init(this.$refs.evaluateChart)
-    const option = {
-      tooltip: {
-        show: false,
-        textStyle: {
-          fontSize: 8
-        }
-      },
-      radar: {
-        name: {
+  updated () {
+    if (this.$refs.evaluateChart) {
+      this.radar = echarts.init(this.$refs.evaluateChart)
+      const option = {
+        tooltip: {
+          show: false,
           textStyle: {
-            color: '#fff',
-            backgroundColor: '#fda203',
-            borderRadius: 3,
-            padding: [2, 4],
             fontSize: 8
           }
         },
-        center: ['50%', '55%'],
-        radius: '70%',
-        nameGap: 5,
-        indicator: [
-          { name: '能力1', max: 20},
-          { name: '能力2', max: 20},
-          { name: '能力3', max: 20},
-          { name: '能力4', max: 20},
-          { name: '能力5', max: 20}
-        ]
-      },
-      series: [{
-        name: '能力得分',
-        type: 'radar',
-        data: [
-          {
-            value: []
-          }
-        ]
-      }]
+        radar: {
+          name: {
+            textStyle: {
+              color: '#fff',
+              backgroundColor: '#fda203',
+              borderRadius: 3,
+              padding: [2, 4],
+              fontSize: 8
+            }
+          },
+          center: ['50%', '55%'],
+          radius: '70%',
+          nameGap: 5,
+          indicator: [
+            { name: '能力1', max: 20},
+            { name: '能力2', max: 20},
+            { name: '能力3', max: 20},
+            { name: '能力4', max: 20},
+            { name: '能力5', max: 20}
+          ]
+        },
+        series: [{
+          name: '能力得分',
+          type: 'radar',
+          data: [
+            {
+              value: [this.abilityDetail.ability_a_score, this.abilityDetail.ability_b_score, this.abilityDetail.ability_c_score, this.abilityDetail.ability_d_score, this.abilityDetail.ability_e_score]
+            }
+          ]
+        }]
+      }
+      this.radar.setOption(option)
     }
-    this.radar.setOption(option)
   },
   methods: {
     checkAge (ele) {
@@ -583,7 +667,7 @@ export default {
     // 获取能力得分列表
     async getAbility () {
       this.abilityDetail = this.abilityList.find(item => item.age === this.age && item.stage === this.stage)
-      this.radar.setOption({
+      this.radar && this.radar.setOption({
         series: [{
           data: [
             {
