@@ -296,6 +296,12 @@
         left 0
         bottom -10px
         z-index -1
+      .evaluate-img
+        position absolute
+        bottom -20px
+        right -55px
+        img
+          width 169px
   .stu-ctrl
     position absolute
     bottom 40px
@@ -392,6 +398,8 @@
         .evaluate-chart
           #chart.chart(ref="evaluateChart")
         .evaluate-tag 测评
+      .evaluate-img
+        img(src="../../assets/images/lxm_2.png")
   .stu-ctrl
     .ctrl-btn(@click="handleRefresh")
       img(src="../../assets/images/refresh.png")
@@ -406,22 +414,6 @@ import LxmBtn from '@/components/common/LxmBtn'
 import echarts from 'echarts'
 import 'echarts/lib/chart/radar'
 
-const stageList = [
-  {
-    value: 1,
-    label: '学前测评'
-  }, {
-    value: 2,
-    label: '阶段测评'
-  }, {
-    value: 3,
-    label: '专题测评'
-  }, {
-    value: 4,
-    label: '年终测评'
-  }
-]
-
 export default {
   components: {
     LxmBtn
@@ -434,24 +426,19 @@ export default {
       ageList: [
         {
           value: 1,
-          label: '3-4',
-          children: stageList
+          label: '3-4'
         }, {
           value: 2,
-          label: '5-6',
-          children: stageList
+          label: '5-6'
         }, {
           value: 3,
-          label: '7-8',
-          children: stageList
+          label: '7-8'
         }, {
           value: 4,
-          label: '9-10',
-          children: stageList
+          label: '9-10'
         }, {
           value: 5,
-          label: '11-12',
-          children: stageList
+          label: '11-12'
         }
       ],
       stageList: [
