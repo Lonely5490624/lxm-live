@@ -182,7 +182,7 @@
       .evaluate-header
         position absolute
         left 50%
-        top -28px
+        top -15px
         transform translateX(-50%)
         .header-circles
           display flex
@@ -242,7 +242,7 @@
               background-color $stuDeepBlue
         .evaluate-ability
           display flex
-          justify-content start
+          justify-content space-between
           width 100%
           border 3px solid #FFCB00
           background-color #FFF6CB
