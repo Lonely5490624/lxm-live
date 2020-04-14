@@ -4,7 +4,7 @@
   height 100%
   position relative
   background url('../../assets/images/stu_bg.png') center top no-repeat
-  background-size 100%
+  background-size cover
   .stu-logo
     position absolute
     top 40px
@@ -49,6 +49,7 @@
           height 85px
           border-radius 50%
           background-color $stuBlue
+          overflow hidden
           img
             width 100%
       .user-info
@@ -108,7 +109,7 @@
         border-radius 10px 10px 30px 30px
         width 500px
         position relative
-        padding 0 25px 35px
+        padding-bottom 35px
         .room-title
           text-align center
           padding 28px 0 30px
@@ -139,6 +140,9 @@
           color #666666
           cursor pointer
         .room-list
+          height 305px
+          overflow-y auto
+          padding 0 25px
           .room-item
             background-color $stuBlue
             padding 20px 20px 15px
@@ -207,11 +211,14 @@
         position relative
         .evaluate-age
           display flex
+          align-items center
           .age-item
             font-size 20px
             color #666666
+            cursor pointer
             &.disabled
               color $gray
+              cursor auto
             &.active
               color $stuBlue
               font-size 26px
@@ -233,9 +240,11 @@
             text-align center
             color #7F5700
             background-color #FFCB00
+            cursor pointer
             &.disabled
               color #ffffff
               background-color $gray
+              cursor auto
             &.active
               color #ffffff
               font-weight bold
@@ -256,9 +265,13 @@
             font-size 14px
             color $fontColor
             line-height 1.8
-        
-
-
+        .evaluate-chart
+          text-align center
+          padding-top 20px
+          .chart
+            display inline-block
+            width 100%
+            height 150px
         .evaluate-tag
           position absolute
           top -107px
@@ -273,8 +286,16 @@
           font-size 20px
           color #ffffff
           text-align center
-
-
+      &::after
+        content ""
+        width 100%
+        height 60px
+        border-radius 0 0 40px 40px
+        background-color $stuDeepGreen
+        position absolute
+        left 0
+        bottom -10px
+        z-index -1
   .stu-ctrl
     position absolute
     bottom 40px
@@ -305,10 +326,10 @@
     .user-content
       .user-avatar
         .avatar-box
-          img(src="../../assets/images/avatar.png")
+          img(:src="userInfo ? userInfo.avatar : '../../assets/images/avatar.png'")
       .user-info
-        .info-name 你好，学员
-        .info-integral 20
+        .info-name 你好，{{userInfo ? userInfo.truename : '学员'}}
+        .info-integral {{integralAll}}
       .user-edit
         img(src="../../assets/images/user_edit.png")
   .stu-main
@@ -323,32 +344,17 @@
           span 我的课程
         .room-history 历史课程
         .room-list
-          .room-item
-            .item-title 课程名称 1
+          .room-item(v-for="item in roomList" :key="item.serial" :class="{not: item.starttime > Math.round(Date.now()/1000)}")
+            .item-title {{item.course_name}}
             .item-info
               .item-time
-                | 2020-03-03 14:00
+                | {{item.starttime | formatDatetimeNoSecond}}
                 br
-                | 2020-03-03 14:00
-              .item-teacher
-                | 王老师
-                br
-                | 王老师
+                | {{item.endtime | formatDatetimeNoSecond}}
+              .item-teacher {{item.teacher_name}}
               .item-btn
-                LxmBtn.btn-start 进入课程
-          .room-item.not
-            .item-title 课程名称 2
-            .item-info
-              .item-time
-                | 2020-03-03 14:00
-                br
-                | 2020-03-03 14:00
-              .item-teacher
-                | 王老师
-                br
-                | 王老师
-              .item-btn
-                LxmBtn.btn-start(type="disable") 未开始
+                LxmBtn.btn-start(v-if="item.starttime <= Math.round(Date.now()/1000)") 进入课程
+                LxmBtn.btn-start(v-else type="disable") 未开始
     .main-evaluate
       .evaluate-header
         .header-circles
@@ -357,20 +363,37 @@
           img(src="../../assets/images/lxm_bird.png")
       .evaluate-box
         .evaluate-age
-          .age-item(v-for="item in ageList" :key="item.value") {{item.label}}
+          template(v-for="item in ageList")
+            .age-item(:key="item.value" v-if="checkAge(item)" :class="{active: age === item.value}" @click="handleClickAge(item)") {{item.label}}
+            .age-item.disabled(:key="item.value" v-if="!checkAge(item)" :class="{active: age === item.value}") {{item.label}}
         .evaluate-stage
-          .stage-item(v-for="item in stageList" :key="item.value") {{item.label}}
+          template(v-for="item in stageList")
+            .stage-item(v-if="checkStage(item)" :key="item.value" :class="{active: stage === item.value}" @click="handleClickStage(item)") {{item.label}}
+            .stage-item.disabled(v-if="!checkStage(item)" :key="item.value" :class="{active: stage === item.value}") {{item.label}}
         .evaluate-ability
-          .ability-item(v-for="item in abilityList" :key="item.label")
-            p.name {{item.label}}
-            p.score {{item.value}}
+          .ability-item
+            p.name 能力1
+            p.score {{abilityDetail ? abilityDetail.ability_a_score : 0}}
+          .ability-item
+            p.name 能力2
+            p.score {{abilityDetail ? abilityDetail.ability_b_score : 0}}
+          .ability-item
+            p.name 能力3
+            p.score {{abilityDetail ? abilityDetail.ability_c_score : 0}}
+          .ability-item
+            p.name 能力4
+            p.score {{abilityDetail ? abilityDetail.ability_d_score : 0}}
+          .ability-item
+            p.name 能力5
+            p.score {{abilityDetail ? abilityDetail.ability_e_score : 0}}
           .ability-item
             p.name 总分
             p.score {{abilityAll}}
         .evaluate-chart
+          #chart.chart(ref="evaluateChart")
         .evaluate-tag 测评
   .stu-ctrl
-    .ctrl-btn
+    .ctrl-btn(@click="handleRefresh")
       img(src="../../assets/images/refresh.png")
       p 刷新
     .ctrl-btn
@@ -380,6 +403,24 @@
 
 <script>
 import LxmBtn from '@/components/common/LxmBtn'
+import echarts from 'echarts'
+import 'echarts/lib/chart/radar'
+
+const stageList = [
+  {
+    value: 1,
+    label: '学前测评'
+  }, {
+    value: 2,
+    label: '阶段测评'
+  }, {
+    value: 3,
+    label: '专题测评'
+  }, {
+    value: 4,
+    label: '年终测评'
+  }
+]
 
 export default {
   components: {
@@ -387,60 +428,192 @@ export default {
   },
   data () {
     return {
-      ageList: [{
-        value: 1,
-        label: '3-4'
-      }, {
-        value: 2,
-        label: '5-6'
-      }, {
-        value: 3,
-        label: '7-8'
-      }, {
-        value: 4,
-        label: '9-10'
-      }, {
-        value: 5,
-        label: '11-12'
-      }],
-      stageList: [{
-        value: 1,
-        label: '学前测评'
-      }, {
-        value: 2,
-        label: '阶段测评'
-      }, {
-        value: 3,
-        label: '专题测评'
-      }, {
-        value: 4,
-        label: '年终测评'
-      }],
-      abilityList: [{
-        value: 10,
-        label: '能力1'
-      }, {
-        value: 20,
-        label: '能力2'
-      }, {
-        value: 20,
-        label: '能力3'
-      }, {
-        value: 20,
-        label: '能力4'
-      }, {
-        value: 20,
-        label: '能力5'
-      }]
+      userInfo: null,
+      integralAll: 0,
+      roomList: [],
+      ageList: [
+        {
+          value: 1,
+          label: '3-4',
+          children: stageList
+        }, {
+          value: 2,
+          label: '5-6',
+          children: stageList
+        }, {
+          value: 3,
+          label: '7-8',
+          children: stageList
+        }, {
+          value: 4,
+          label: '9-10',
+          children: stageList
+        }, {
+          value: 5,
+          label: '11-12',
+          children: stageList
+        }
+      ],
+      stageList: [
+        {
+          value: 1,
+          label: '学前测评'
+        }, 
+        {
+          value: 2,
+          label: '学前测评'
+        }, 
+        {
+          value: 3,
+          label: '学前测评'
+        }, 
+        {
+          value: 4,
+          label: '学前测评'
+        }
+      ],
+      abilityList: [],
+      abilityDetail: null,
+      age: 0,
+      stage: 0,
+      radar: null
     }
   },
   computed: {
     abilityAll () {
-      if (this.abilityList.length) {
-        return this.abilityList.reduce((sum, item) => sum + item.value, 0)
+      if (this.abilityDetail) {
+        return (
+          this.abilityDetail.ability_a_score +
+          this.abilityDetail.ability_b_score +
+          this.abilityDetail.ability_c_score +
+          this.abilityDetail.ability_d_score +
+          this.abilityDetail.ability_e_score
+        )
       } else {
         return 0
       }
+    }
+  },
+  async beforeMount () {
+    this.handleRefresh()
+  },
+  mounted () {
+    this.radar = echarts.init(this.$refs.evaluateChart)
+    const option = {
+      tooltip: {
+        show: false,
+        textStyle: {
+          fontSize: 8
+        }
+      },
+      radar: {
+        name: {
+          textStyle: {
+            color: '#fff',
+            backgroundColor: '#fda203',
+            borderRadius: 3,
+            padding: [2, 4],
+            fontSize: 8
+          }
+        },
+        center: ['50%', '55%'],
+        radius: '70%',
+        nameGap: 5,
+        indicator: [
+          { name: '能力1', max: 20},
+          { name: '能力2', max: 20},
+          { name: '能力3', max: 20},
+          { name: '能力4', max: 20},
+          { name: '能力5', max: 20}
+        ]
+      },
+      series: [{
+        name: '能力得分',
+        type: 'radar',
+        data: [
+          {
+            value: []
+          }
+        ]
+      }]
+    }
+    this.radar.setOption(option)
+  },
+  methods: {
+    checkAge (ele) {
+      return this.abilityList.find(item => item.age === ele.value)
+    },
+    checkStage (ele) {
+      // 筛选阶段时，需要年龄和阶段同时满足
+      return this.abilityList.find(item => item.age === this.age && item.stage === ele.value)
+    },
+    // 获取个人信息
+    async getUserInfo () {
+      const res = await this.$axios.get('user/getUserInfo')
+      if (res.code === 200) {
+        this.userInfo = res.data
+      }
+    },
+    // 获取学员积分
+    async getMyIntegral () {
+      const res = await this.$axios.get('stu/getMyIntegral')
+      if (res.code === 200) {
+        this.integralAll = res.data.length ? res.data[0].integral_left : 0
+      }
+    },
+    // 获取当前教室列表
+    async getRoomList () {
+      const res = await this.$axios.get('stu/getMyRoomList')
+      if (res.code === 200) {
+       this.roomList = res.data.reverse()
+      }
+    },
+    // 获取历史教室列表
+    // 获取学员能力列表
+    async getMyAbility () {
+      const res = await this.$axios.get('stu/getMyAbility')
+      if (res.code === 200) {
+        this.abilityList = res.data
+        if (this.abilityList.length) {
+          this.age = this.abilityList[0].age
+          this.stage = this.abilityList[0].stage
+        }
+        this.getAbility()
+      }
+    },
+    // 点击年龄段
+    handleClickAge (item) {
+      this.age = item.value
+      // 点击年龄段时，阶段需要选中第一个能选的
+      this.stage = this.abilityList.find(item => item.age === this.age).stage
+      this.getAbility()
+    },
+    // 点击阶段
+    handleClickStage (item) {
+      this.stage = item.value
+      this.getAbility()
+    },
+    // 获取能力得分列表
+    async getAbility () {
+      this.abilityDetail = this.abilityList.find(item => item.age === this.age && item.stage === this.stage)
+      this.radar.setOption({
+        series: [{
+          data: [
+            {
+              value: [this.abilityDetail.ability_a_score, this.abilityDetail.ability_b_score, this.abilityDetail.ability_c_score, this.abilityDetail.ability_d_score, this.abilityDetail.ability_e_score]
+            }
+          ]
+        }]
+      })
+    },
+    // 刷新页面
+    async handleRefresh () {
+      await Promise.all([
+        this.getUserInfo(),
+        this.getRoomList(),
+        this.getMyIntegral(),
+        this.getMyAbility()
+      ])
     }
   }
 }
