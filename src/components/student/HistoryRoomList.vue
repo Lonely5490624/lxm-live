@@ -7,13 +7,15 @@ $durationWidth = 165px
 .history-box
   border-radius 30px
   width 1150px
-  overflow hidden
+  position relative
   .history-header
     height 80px
     line-height 80px
     display flex
     justify-content space-between
     text-align center
+    border-radius 30px 30px 0 0
+    overflow hidden
     .header-item
       height 100%
       font-size 24px
@@ -40,6 +42,7 @@ $durationWidth = 165px
   .history-list
     height 528px
     overflow auto
+    border-radius 0 0 30px 30px
     background-color #fff
     .history-item
       height 132px
@@ -70,6 +73,15 @@ $durationWidth = 165px
       color $gray
       line-height 528px
       text-align center
+  &::after
+    content ""
+    background-color #80E180
+    position absolute
+    width 100%
+    height 60px
+    border-radius 0 0 30px 30px
+    bottom -10px
+    z-index -1
 </style>
 
 <template lang="pug">
