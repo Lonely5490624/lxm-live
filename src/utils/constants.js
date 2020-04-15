@@ -71,7 +71,7 @@ const ROOMLAYOUT = {
   53: '纯视频布局(1V1)'
 }
 
-export default {
+export {
   GENDER,
   RELATION,
   ROLE,

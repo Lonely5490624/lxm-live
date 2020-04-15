@@ -11,6 +11,7 @@ import NotFound from '@/views/404'
 import Stu from '@/views/student/Index'
 import StuHome from '@/views/student/Home'
 import HistoryRoom from '@/views/student/HistoryRoom'
+import Mine from '@/views/student/Mine'
 
 Vue.use(VueRouter)
 
@@ -46,6 +47,10 @@ export const routes = [
       path: '/stu/historyRoom',
       label: '学生历史课程',
       component: HistoryRoom
+    }, {
+      path: '/stu/mine',
+      label: '学生个人中心',
+      component: Mine
     }]
   },
   {

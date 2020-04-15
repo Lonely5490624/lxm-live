@@ -396,11 +396,11 @@
     .user-content
       .user-avatar
         .avatar-box
-          img(:src="userInfo ? userInfo.avatar : '../../assets/images/avatar.png'")
+          img(:src="userInfo ? userInfo.avatar : avatar")
       .user-info
         .info-name 你好，{{userInfo ? userInfo.truename : '学员'}}
         .info-integral {{integralAll}}
-      .user-edit
+      router-link.user-edit(to="/stu/mine")
         img(src="../../assets/images/user_edit.png")
   .stu-main
     .main-room
@@ -495,6 +495,7 @@
 import LxmBtn from '@/components/common/LxmBtn'
 import echarts from 'echarts'
 import 'echarts/lib/chart/radar'
+import avatar from '@/assets/images/avatar.png'
 
 export default {
   components: {
@@ -502,6 +503,7 @@ export default {
   },
   data () {
     return {
+      avatar,
       userInfo: null,
       integralAll: 0,
       roomList: [],
@@ -680,7 +682,7 @@ export default {
     // 刷新页面
     async handleRefresh () {
       await Promise.all([
-        this.getUserInfo(),
+        // this.getUserInfo(),
         this.getRoomList(),
         this.getMyIntegral(),
         this.getMyAbility()
