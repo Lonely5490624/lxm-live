@@ -409,33 +409,33 @@
           img(src="../../assets/images/lxm_1.png")
         .header-top
           .top-inner
-      //- .room-content
-      //-   .room-title
-      //-     span 我的课程
-      //-   .room-history 历史课程
-      //-   .room-list
-      //-     .room-item(v-for="item in roomList" :key="item.serial" :class="{not: item.starttime > Math.round(Date.now()/1000)}")
-      //-       .item-title {{item.course_name}}
-      //-       .item-info
-      //-         .item-time
-      //-           | {{item.starttime | formatDatetimeNoSecond}}
-      //-           br
-      //-           | {{item.endtime | formatDatetimeNoSecond}}
-      //-         .item-teacher {{item.teacher_name}}
-      //-         .item-btn
-      //-           LxmBtn.btn-start(v-if="item.starttime <= Math.round(Date.now()/1000)") 进入课程
-      //-           LxmBtn.btn-start(v-else type="disable") 未开始
+      .room-content
+        .room-title
+          span 我的课程
+        router-link.room-history(to="/stu/historyRoom") 历史课程
+        .room-list
+          .room-item(v-for="item in roomList" :key="item.serial" :class="{not: item.starttime > Math.round(Date.now()/1000)}")
+            .item-title {{item.course_name}}
+            .item-info
+              .item-time
+                | {{item.starttime | formatDatetimeNoSecond}}
+                br
+                | {{item.endtime | formatDatetimeNoSecond}}
+              .item-teacher {{item.teacher_name}}
+              .item-btn
+                LxmBtn.btn-start(v-if="item.starttime <= Math.round(Date.now()/1000)") 进入课程
+                LxmBtn.btn-start(v-else type="disable") 未开始
       //- .room-content.unsign
       //-   .room-title
       //-     span 我的课程
       //-   .unsign-box
       //-     p 恭喜您，您获得了一次免费试听课的机会，稍后会有课程顾问会通过电话联系您，请耐心等待......
-      .room-content.to-sign
-        .room-title
-          span 我的课程
-        .to-sign-box
-          .to-sign-img 还未报名
-          LxmBtn 点我报名
+      //- .room-content.to-sign
+      //-   .room-title
+      //-     span 我的课程
+      //-   .to-sign-box
+      //-     .to-sign-img 还未报名
+      //-     LxmBtn 点我报名
     .main-evaluate
       .evaluate-header
         .header-circles
