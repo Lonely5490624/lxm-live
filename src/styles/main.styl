@@ -104,6 +104,44 @@ input[type="checkbox"]
       padding-bottom 28px
     .dialog-content
       padding-bottom 30px
+      .mint-datetime
+        display block !important
+        .picker-toolbar
+          display none
+      .mint-popup
+        transform translate(0, 0)
+        position static
+      .dialog-relation
+        display flex
+        justify-content space-between
+        .el-select.relation-select
+          width 160px
+          .el-input
+            .el-input__inner
+              width 100%
+              text-indent 1em
+            &.is-focus
+              .el-input__inner
+                border-bottom-left-radius 0
+                border-bottom-right-radius 0
+        .relation-name
+          width 230px
+          text-indent 1em
+      .dialog-password
+        input.password
+          background-image url('../assets/svg/svg_pwd.svg')
+          background-position 30px center
+          background-repeat no-repeat
+          background-size 22px 23px
+          & + .password
+            margin-top 17px 
     .dialog-bottom
       .dialog-btn
         width 155px
+/* 修改el-message样式 */
+.el-message
+  min-width 380px
+  padding 15px 15px 15px 20px
+  border-radius 24px
+  .el-message__content
+    font-size 14px

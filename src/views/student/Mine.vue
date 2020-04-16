@@ -134,6 +134,8 @@ input.user-truename
       filter grayscale(0)
       .gender-name
         color #333333
+.el-select-dropdown__item
+  padding 0 20px
 </style>
 
 <template lang="pug">
@@ -161,7 +163,7 @@ input.user-truename
             .value.middle
               template(v-if="userInfo && userInfo.birth") {{userInfo.birth | formatDate}}
               template(v-else) 未填写
-            .ctrl(@click="dialogShow.birth = true") 修改
+            .ctrl(@click="openBirthDialog") 修改
           .box-item
             .label 性别
             .value {{userInfo && userInfo.gender ? GENDER[userInfo.gender] : '未填写'}}
@@ -191,7 +193,7 @@ input.user-truename
     .dialog-content(slot="content")
       input.user-truename(type="text" placeholder="请输入真实姓名" v-model="modifyData && modifyData.truename" maxlength="4")
     .dialog-bottom(slot="footer")
-      LxmBtn.dialog-btn(@onClick="modifyTruename") 保存
+      LxmBtn.dialog-btn(@onClick="modifyTruename" :type="modifyData && modifyData.truename ? '' : 'disable'") 保存
   //- 修改性别
   UserDialog(
     :visible.sync="dialogShow.gender"
@@ -209,18 +211,75 @@ input.user-truename
             .gender-img.gender-girl
           .gender-name 女宝宝
     .dialog-bottom(slot="footer")
-      LxmBtn.dialog-btn(@onClick="modifyGender") 保存
+      LxmBtn.dialog-btn(@onClick="modifyGender" :type="modifyData && modifyData.gender ? '' : 'disable'") 保存
+  //- 修改生日
+  UserDialog(
+    :visible.sync="dialogShow.birth"
+    @onClose="closeDialog"
+    title="修改生日"
+  )
+    .dialog-content(slot="content" style="height: 292PX;")
+      mt-datetime-picker(
+        v-model="birthTime"
+        type="date"
+        year-format="{value} 年"
+        month-format="{value} 月"
+        date-format="{value} 日"
+        :start-date="new Date('2000-01-01')"
+        :end-date="new Date()"
+      )
+    .dialog-bottom(slot="footer")
+      LxmBtn.dialog-btn(@onClick="modifyBirth") 保存
+  //- 家长信息
+  UserDialog(
+    :visible.sync="dialogShow.relation"
+    @onClose="closeDialog"
+    title="家长信息"
+  )
+    .dialog-content(slot="content")
+      .dialog-relation
+        el-select.relation-select(v-model="modifyData && modifyData.relation")
+          el-option(
+            v-for="item in relationList"
+            :key="item.value"
+            :value="item.value"
+            :label="item.label"
+            :popper-append-to-body="false"
+          )
+        input.relation-name(type="text" placeholder="请输入家长姓名" maxlength="4" v-model="modifyData && modifyData.relation_name")
+    .dialog-bottom(slot="footer")
+      LxmBtn.dialog-btn(@onClick="modifyRelation" :type="modifyData && modifyData.relation && modifyData.relation_name ? '' : 'disable'") 保存
+  //- 修改密码
+  UserDialog(
+    :visible.sync="dialogShow.password"
+    @onClose="closeDialog"
+    title="修改密码"
+  )
+    .dialog-content(slot="content")
+      .dialog-password
+        input.password(type="password" placeholder="请输入当前密码" maxlength="14" v-model="oldPassword")
+        input.password(type="password" placeholder="请输入6-14位英文数字组合的密码" maxlength="14" v-model="newPassword")
+        input.password(type="password" placeholder="请输入确认密码" maxlength="14" v-model="newPassword2")
+    .dialog-bottom(slot="footer")
+      LxmBtn.dialog-btn(@onClick="modifyPassword" :type="oldPassword && newPassword && newPassword2 ? '' : 'disable'") 保存
 </template>
 
 <script>
+import Vue from 'vue'
 import avatar from '@/assets/images/avatar.png'
 import { GENDER, RELATION } from '@/utils/constants'
+import { DatetimePicker } from 'mint-ui';
 import Back from '@/components/common/Back'
 import UserDialog from '@/components/common/UserDialog'
 import LxmBtn from '@/components/common/LxmBtn'
 
+import checkRules from '@/utils/checkRules'
+
+Vue.component(DatetimePicker.name, DatetimePicker);
+
 export default {
   components: {
+    DatetimePicker,
     Back,
     UserDialog,
     LxmBtn
@@ -236,8 +295,17 @@ export default {
         truename: false,
         birth: false,
         gender: false,
-        relation: false
-      }
+        relation: false,
+        password: false
+      },
+      birthTime: null,
+      relationList: [
+        { value: 1, label: '父亲' },
+        { value: 2, label: '母亲' }
+      ],
+      oldPassword: '',
+      newPassword: '',
+      newPassword2: ''
     }
   },
   mounted () {
@@ -278,7 +346,12 @@ export default {
         this.$message.error(res.msg)
       }
     },
+    // 修改性别
     async modifyGender () {
+      if (!this.modifyData?.gender) {
+        this.$message.error('请选择性别')
+        return
+      }
       const params = {
         gender: this.modifyData?.gender
       }
@@ -286,6 +359,80 @@ export default {
       if (res.code === 200) {
         this.dialogShow.gender = false
         this.userInfo = {...this.modifyData}
+      } else {
+        this.$message.error(res.msg)
+      }
+    },
+    // 打开生日弹窗
+    openBirthDialog () {
+      this.dialogShow.birth = true
+      this.birthTime = this.modifyData?.birth ? new Date(this.modifyData.birth * 1000) : new Date()
+    },
+    // 修改生日
+    async modifyBirth () {
+      const params = {
+        birth: new Date(this.birthTime).getTime() / 1000
+      }
+      const res = await this.$axios.post('user/modifyBirth', params)
+      if (res.code === 200) {
+        this.modifyData.birth = new Date(this.birthTime).getTime() / 1000
+        this.userInfo = {...this.modifyData}
+        this.dialogShow.birth = false
+      } else {
+        this.$message.error(res.msg)
+      }
+    },
+    // 修改家长信息
+    async modifyRelation () {
+      if (!this.modifyData?.relation || !this.modifyData?.relation_name) {
+        this.$message.error('请填写家长信息')
+        return
+      }
+      const params = {
+        relation: this.modifyData?.relation,
+        relation_name: this.modifyData?.relation_name
+      }
+      const res = await this.$axios.post('user/modifyRelation', params)
+      if (res.code === 200) {
+        this.userInfo = {...this.modifyData}
+        this.dialogShow.relation = false
+      } else {
+        this.$message.error(res.msg)
+      }
+    },
+    // 修改密码
+    async modifyPassword () {
+      if (!this.oldPassword) {
+        this.$message.error('请输入当前密码')
+        return
+      }
+      if (!this.newPassword) {
+        this.$message.error('请输入新密码')
+        return
+      }
+      if (!checkRules.checkPassword(this.newPassword)) {
+        this.$message.error('请输入正确的格式')
+        return
+      }
+      if (!this.newPassword2) {
+        this.$message.error('请输入确认密码')
+        return
+      }
+      if (!checkRules.checkPassword(this.newPassword2)) {
+        this.$message.error('请输入正确的密码')
+        return
+      }
+      const params = {
+        oldPassword: this.oldPassword,
+        newPassword: this.newPassword
+      }
+      const res = await this.$axios.post('user/modifyPwd', params)
+      if (res.code === 200) {
+        // 重置密码为空
+        this.oldPassword = ''
+        this.newPassword = ''
+        this.newPassword2 = ''
+        this.dialogShow.password = false
       } else {
         this.$message.error(res.msg)
       }

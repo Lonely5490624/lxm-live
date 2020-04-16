@@ -5,6 +5,7 @@ import filters from '@/utils/filters'
 
 import ElementUI from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css'
+import 'mint-ui/lib/style.css'
 
 import App from './App.vue'
 import router from './router'
