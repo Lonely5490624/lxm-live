@@ -682,7 +682,7 @@ export default {
     // 刷新页面
     async handleRefresh () {
       await Promise.all([
-        // this.getUserInfo(),
+        this.getUserInfo(),
         this.getRoomList(),
         this.getMyIntegral(),
         this.getMyAbility()

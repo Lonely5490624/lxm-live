@@ -67,7 +67,7 @@ input[type="checkbox"]
 
 /* 乐学猫dialog */
 .lxm-dialog-box
-  width 1000px !important
+  /* width 1000px !important */
   margin-top 0 !important
   top 50%
   transform translateY(-50%)
@@ -78,3 +78,32 @@ input[type="checkbox"]
     display none
   .el-dialog__body
     padding 0
+/* 个人中心修改弹窗 */
+.lxm-user-dialog
+  width 510px
+  margin-top 0 !important
+  top 50%
+  transform translateY(-50%)
+  border-radius 20px
+  padding 30px 50px
+  position relative
+  .el-dialog__header
+    display none
+  .el-dialog__body
+    padding 0
+  .user-dialog-body
+    text-align center
+    .dialog-close
+      position absolute
+      top -17px
+      right -13px
+    .dialog-title
+      font-size 22px
+      color #333333
+      line-height 1
+      padding-bottom 28px
+    .dialog-content
+      padding-bottom 30px
+    .dialog-bottom
+      .dialog-btn
+        width 155px
