@@ -3,7 +3,7 @@
   width 100%
   height 100%
   position relative
-  background url('../../assets/images/mine_bg.png')
+  background url('../../assets/images/mine_bg.png') center no-repeat
   background-size cover
   .mine-back
     position absolute

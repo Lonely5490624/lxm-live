@@ -12,6 +12,7 @@ import Stu from '@/views/student/Index'
 import StuHome from '@/views/student/Home'
 import HistoryRoom from '@/views/student/HistoryRoom'
 import Mine from '@/views/student/Mine'
+import Setting from '@/views/Setting'
 
 Vue.use(VueRouter)
 
@@ -33,25 +34,6 @@ export const routes = [
         next()
       }
     }
-  },
-  {
-    path: '/stu',
-    label: '学生',
-    component: Stu,
-    redirect: '/stu/home',
-    children: [{
-      path: '/stu/home',
-      label: '学生主页',
-      component: StuHome
-    }, {
-      path: '/stu/historyRoom',
-      label: '学生历史课程',
-      component: HistoryRoom
-    }, {
-      path: '/stu/mine',
-      label: '学生个人中心',
-      component: Mine
-    }]
   },
   {
     path: '/home',
@@ -76,6 +58,29 @@ export const routes = [
         component: TeacherList
       }
     ]
+  },
+  {
+    path: '/stu',
+    label: '学生',
+    component: Stu,
+    redirect: '/stu/home',
+    children: [{
+      path: '/stu/home',
+      label: '学生主页',
+      component: StuHome
+    }, {
+      path: '/stu/historyRoom',
+      label: '学生历史课程',
+      component: HistoryRoom
+    }, {
+      path: '/stu/mine',
+      label: '学生个人中心',
+      component: Mine
+    }]
+  },
+  {
+    path: '/setting',
+    component: Setting
   },
   {
     path: '/classroom/:id',

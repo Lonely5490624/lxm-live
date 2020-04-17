@@ -487,8 +487,9 @@
       img(src="../../assets/images/refresh.png")
       p 刷新
     .ctrl-btn
-      img(src="../../assets/images/setting.png")
-      p 设置
+      router-link(to="/setting")
+        img(src="../../assets/images/setting.png")
+        p 设置
 </template>
 
 <script>
