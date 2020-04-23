@@ -122,6 +122,28 @@
       justify-content center
       align-items center
       color #d8dae7
+    .video-hover
+      position absolute
+      left 0
+      right 0
+      top 0
+      bottom 0
+      z-index 4
+      // background-color rgba(255, 255, 255, .5)
+      padding 0 10px
+      display none
+      justify-content space-between
+      align-items center
+      font-size 40px
+      color #fff
+      i
+        width 40px
+        height 40px
+        border-radius 50%
+        background-color #404246
+        cursor pointer
+    &:hover .video-hover
+      display flex
     .video-bottom
       height 30px
       position absolute
@@ -168,10 +190,24 @@
     .class-board
       WhiteBoard.class-whiteboard
       #stu-videos.class-stu-videos(ref="stuVideoList")
-        //- .stu-video
+        template(v-for="item in students")
+          .stu-video(:key="item.id" :id="`video-${item.id}`" v-if="item.publishstate")
+            .video-hover
+              i.middle-btn.icon-btn_shangtai(@click="downStage(item)")
+              i.middle-btn.icon-btn_audio(@click="teacherStopStuAudio(item)" v-if="item.publishstate === 1 || item.publishstate === 3")
+              i.middle-btn.icon-btn_mute(v-else @click="teacherOpenStuAudio(item)")
+              i.middle-btn.icon-btn_camera(@click="teacherStopStuVideo(item)" v-if="item.publishstate === 2 || item.publishstate === 3")
+              i.middle-btn.icon-btn_close-camera(@click="teacherOpenStuVideo(item)" v-else)
+            .video-bottom
+              .bottom-name {{item.nickname}}
+              .bottom-voice(v-if="teacher && (item.publishstate === 1 || item.publishstate === 3)")
+                i.icon-btn_audio
+                .voice-volume
+              .bottom-voice(style="justify-content: flex-end;" v-else)
+                i.icon-btn_mute
     .class-info
       #teacher-video.class-video
-        .teacher-video-hover(v-if="teacher && classBegin")
+        .teacher-video-hover(v-if="teacher")
           i.middle-btn.icon-btn_audio(@click="closeTeacherAudio" v-if="teacher.publishstate === 1 || teacher.publishstate === 3")
           i.middle-btn.icon-btn_mute(v-else @click="openTeacherAudio")
           i.middle-btn.icon-btn_camera(@click="closeVideo" v-if="teacher.publishstate === 2 || teacher.publishstate === 3")
@@ -245,8 +281,16 @@ export default {
       this.getUsers()
     })
     // 用户离开房间事件
-    this.room.addEventListener(TK.EVENT_TYPE.roomParticipantLeave, () => {
+    this.room.addEventListener(TK.EVENT_TYPE.roomParticipantLeave, (e) => {
       this.getUsers()
+      console.log('用户离开房间', e)
+      if (e.user.role === 2) {
+        // 如果是学生
+        if (document.getElementById(`video-${e.userId}`)) {
+          // 如果已经存在于视频列表中
+          // this.$refs.stuVideoList.removeChild(document.getElementById(`video-${e.userId}`))
+        }
+      }
     })
     // 用户属性改变事件
     this.room.addEventListener(TK.EVENT_TYPE.roomUserPropertyChanged, () => {
@@ -276,77 +320,91 @@ export default {
     // 用户属性改变事件
     this.room.addEventListener(TK.EVENT_TYPE.roomUserPropertyChanged, (e) => {
       console.log(11111, e)
-      if (e.user?.role === 2) {
-        const state = e.message?.publishstate
-        if (state === 0) {
-          this.stopStuVideo(e.user)
-          const dom = document.getElementById(`video-${e.user?.id}`)
-          this.$refs.stuVideoList.removeChild(dom)
+      const myId = this.room.getMySelf().id
+      if (e.message?.hasOwnProperty('publishstate')) {
+        /**
+         * 若发生变化的是用户的音视频发布状态
+         * 首先判断是不是自己，若是自己则改变自己的音视频发布状态
+         * 若不是自己则直接调用是否播放音视频
+         */
+        if (e.user?.role === 2) {
+          if (e.userId === myId) {
+            // 改变的是自己
+            switch (e.message.publishstate) {
+              case 0:
+                // 停止发布音频和视频，并移除视频列表
+                this.room.unpublishAudio()
+                this.room.unpublishVideo()
+                // this.$refs.stuVideoList.removeChild(document.getElementById(`video-${e.userId}`))
+                break
+              case 1:
+                // 只发布音频
+                this.room.publishAudio()
+                break
+              case 2:
+                // 只发布视频
+                this.room.publishVideo()
+                break
+              case 3:
+                // 同时发布音视频
+                this.room.publishAudio()
+                this.room.publishVideo()
+                break
+              case 4:
+                // 停止发布音视频
+                // this.room.unpublishAudio()
+                // this.room.unpublishVideo()
+                break
+              default:
+                break
+            }
+          } else {
+            // 改变的不是自己，只需要判断是否是0
+            if (e.message.publishstate === 0) {
+              // this.$refs.stuVideoList.removeChild(document.getElementById(`video-${e.userId}`))
+            }
+          }
+        } else {
+          // 这是老师
         }
       }
     })
     // 用户视频发布状态改变
     this.room.addEventListener(TK.EVENT_TYPE.roomUserVideoStateChanged, e => {
+      console.log('用户视频发布状态改变', e)
       const stu = this.$store.state.stu.stuList.find(item => item.id === e.message?.userId)
       console.log('stu', stu)
       if (stu) {
+        // 这里表示是学生
         if (e.message?.published) {
           this.playStuVideo(stu)
         } else {
           this.stopStuVideo(stu)
         }
+      } else {
+        // 这里表示老师
+        if (e.message?.published) {
+          this.playTeacherVideo()
+        } else {
+          this.stopTeacherVideo()
+        }
       }
     })
     // 用户音频发布状态改变
     this.room.addEventListener(TK.EVENT_TYPE.roomUserAudioStateChanged, e => {
+      console.log('监听音频状态变化', e)
+      // 这是老师
       if (e.message?.userId === this.teacher?.id) {
         if (e.message?.publishstate === 1 || e.message?.publishstate === 3) {
           this.room.registerAudioVolumeListener(this.teacher.id, 80, vol => {
-            console.log('vol', vol)
             this.teacherVolume = vol
           })
         } else {
           this.room.unregisterAudioVolumeListener(this.teacher.id)
         }
       }
-      const stu = this.$store.state.stu.stuList.find(item => item.id === e.message?.userId)
-      if (stu) {
-        let stuVideoDom = document.getElementById(`video-${stu.id}`)
-        if (e.message?.publishstate) {
-          if (!stuVideoDom) {
-            this.addStuVideoDom(stu)
-            stuVideoDom = document.getElementById(`video-${stu.id}`)
-          }
-          if (e.message?.published) {
-            stuVideoDom.querySelector('.bottom-voice').innerHTML = '<i class="icon-btn_audio"></i><div class="voice-volume"></div>'
-            stuVideoDom.querySelector('.bottom-voice').removeAttribute('style')
-            this.room.registerAudioVolumeListener(stu.id, 80, vol => {
-              stuVideoDom.querySelector('.bottom-voice').querySelector('.voice-volume').style.width = `${vol / 10 * .4}rem`
-            })
-          } else {
-            stuVideoDom.querySelector('.bottom-voice').innerHTML = '<i class="icon-btn_mute"></i>'
-            stuVideoDom.querySelector('.bottom-voice').setAttribute('style', 'justify-content: flex-end;')
-            this.room.unregisterAudioVolumeListener(stu.id)
-          }
-        }
-      }
     })
   },
-  // updated () {
-  //   this.initRoom()
-  //   this.room.addEventListener(TK.EVENT_TYPE.roomConnected, () => {
-  //     this.getUsers(() => {
-  //       this.$store.state.stu?.stuList.forEach(element => {
-  //         if (element.publishstate) {
-  //           this.room.changeUserProperty(element.id, TK.MSG_TO_ALLUSER, {
-  //             publishstate: element.publishstate
-  //           })
-  //           this.playStuVideo(element)
-  //         }
-  //       })
-  //     })
-  //   })
-  // },
   methods: {
     // 初始化房间
     initRoom () {
@@ -361,50 +419,50 @@ export default {
     },
     // 加入房间
     joinRoom () {
-      this.room.joinroom('global.talk-cloud.net', '443', 'tester', 'i am teacher id', {
+      this.room.joinroom('global.talk-cloud.net', '443', localStorage.getItem('name'), localStorage.getItem('name'), {
         serial: this.$route.params.serial,
-        password: '7580'
+        password: this.role === 0 ? '7580' : '2824'
       })
       this.playTeacherVideo()
     },
     // 播放老师视频
     playTeacherVideo () {
-      this.room.playVideo(this.room.getMySelf().id || '', 'teacher-video', {}, err => {
+      this.room.playVideo(this.teacher?.id || '', 'teacher-video', {}, err => {
         console.log('播放失败', err)
       })
     },
     stopTeacherVideo () {
-      this.room.unplayVideo()
+      this.room.unplayVideo(this.teacher.id)
     },
     // 添加学生视频的dom
-    addStuVideoDom (stu) {
-      const stuId = stu.id
-      const domId = 'video-' + stuId
-      let stuVideoDom = document.getElementById(domId)
-      if (!stuVideoDom) {
-        stuVideoDom = document.createElement('div')
-        stuVideoDom.setAttribute('id', domId)
-        stuVideoDom.setAttribute('class', 'stu-video')
-        const bottomDom = `
-          <div class="video-bottom">
-            <div class="bottom-name">
-              ${stu.nickname}
-            </div>
-            ${stu.publishstate === 1 || stu.publishstate === 3 ?
-            // eslint-disable-next-line no-multi-str
-            '<div class="bottom-voice">\
-              <i class="icon-btn_audio"></i>\
-              <div class="voice-volume"></div>\
-            </div>' :
-            // eslint-disable-next-line no-multi-str
-            '<div class="bottom-voice" style="justify-content: flex-end;">\
-              <i class="icon-btn_mute"></i>\
-            </div>'}
-          </div>
-        `
-        stuVideoDom.innerHTML = bottomDom
-        this.$refs.stuVideoList.appendChild(stuVideoDom)
-      }
+    addStuVideoDom () {
+      // const stuId = stu.id
+      // const domId = 'video-' + stuId
+      // let stuVideoDom = document.getElementById(domId)
+      // if (!stuVideoDom) {
+      //   stuVideoDom = document.createElement('div')
+      //   stuVideoDom.setAttribute('id', domId)
+      //   stuVideoDom.setAttribute('class', 'stu-video')
+      //   const bottomDom = `
+      //     <div class="video-bottom">
+      //       <div class="bottom-name">
+      //         ${stu.nickname}
+      //       </div>
+      //       ${stu.publishstate === 1 || stu.publishstate === 3 ?
+      //       // eslint-disable-next-line no-multi-str
+      //       '<div class="bottom-voice">\
+      //         <i class="icon-btn_audio"></i>\
+      //         <div class="voice-volume"></div>\
+      //       </div>' :
+      //       // eslint-disable-next-line no-multi-str
+      //       '<div class="bottom-voice" style="justify-content: flex-end;">\
+      //         <i class="icon-btn_mute"></i>\
+      //       </div>'}
+      //     </div>
+      //   `
+      //   stuVideoDom.innerHTML = bottomDom
+      //   this.$refs.stuVideoList.appendChild(stuVideoDom)
+      // }
     },
     // 播放学生视频
     playStuVideo (stu) {
@@ -462,6 +520,67 @@ export default {
           publishstate: TK.PUBLISH_STATE_VIDEOONLY
         })
       }
+    },
+    // 老师停止播放学生的视频
+    teacherStopStuVideo (stu) {
+      if (stu.publishstate === 2) {
+        this.room.changeUserProperty(stu.id, TK.MSG_TO_ALLUSER, {
+          publishstate: 4
+        })
+      } else {
+        this.room.changeUserProperty(stu.id, TK.MSG_TO_ALLUSER, {
+          publishstate: 1
+        })
+      }
+    },
+    // 老师开启播放学生的视频
+    teacherOpenStuVideo (stu) {
+      if (stu.publishstate === 1) {
+        this.room.changeUserProperty(stu.id, TK.MSG_TO_ALLUSER, {
+          publishstate: 3
+        })
+      } else {
+        this.room.changeUserProperty(stu.id, TK.MSG_TO_ALLUSER, {
+          publishstate: 2
+        })
+      }
+    },
+    // 老师停止播放学生的音频
+    teacherStopStuAudio (stu) {
+      if (stu.publishstate === 1) {
+        this.room.changeUserProperty(stu.id, TK.MSG_TO_ALLUSER, {
+          publishstate: 4
+        })
+      } else {
+        this.room.changeUserProperty(stu.id, TK.MSG_TO_ALLUSER, {
+          publishstate: 2
+        })
+      }
+    },
+    // 老师开启播放学生的音频
+    teacherOpenStuAudio (stu) {
+      if (stu.publishstate === 2) {
+        this.room.changeUserProperty(stu.id, TK.MSG_TO_ALLUSER, {
+          publishstate: 3
+        })
+      } else {
+        this.room.changeUserProperty(stu.id, TK.MSG_TO_ALLUSER, {
+          publishstate: 1
+        })
+      }
+      this.observeStuVolume(stu)
+    },
+    // 监听学生的音量变化
+    observeStuVolume (stu) {
+      this.room.registerAudioVolumeListener(stu.id, 80, vol => {
+        console.log('学生音频变化', vol)
+      })
+    },
+    // 下台学生
+    downStage (stu) {
+      this.room.changeUserProperty(stu.id, TK.MSG_TO_ALLUSER, {
+        publishstate: TK.PUBLISH_STATE_NONE
+      })
     }
   }
 }

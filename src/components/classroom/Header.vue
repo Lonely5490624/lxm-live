@@ -54,26 +54,26 @@
     .left-item.duration(v-if="classBegin") 00：00：26
   section.header-right
     .right-ctrl
-      .ctrl-item(:class="{active: openType === 'users'}" @click="openType = 'users'")
+      .ctrl-item(:class="{active: openType === 'users'}" @click.stop="setOpenType('users')" rel="users")
         img.item-img(src="../../assets/images/room_user.png")
         .item-text 花名册
-      .ctrl-item(:class="{active: openType === 'files'}" @click="openType = 'files'")
+      .ctrl-item(:class="{active: openType === 'files'}" @click.stop="setOpenType('files')" rel="files")
         img.item-img(src="../../assets/images/room_course.png")
         .item-text 课件库
-      .ctrl-item(:class="{active: openType === 'tools'}" @click="openType = 'tools'")
+      .ctrl-item(v-if="classBegin" :class="{active: openType === 'tools'}" @click.stop="setOpenType('tools')" rel="tools")
         img.item-img(src="../../assets/images/room_tool.png")
         .item-text 工具箱
-      .ctrl-item(:class="{active: openType === 'ctrls'}" @click="openType = 'ctrls'")
+      .ctrl-item(v-if="classBegin" :class="{active: openType === 'ctrls'}" @click.stop="setOpenType('ctrls')" rel="ctrls")
         img.item-img(src="../../assets/images/room_ctrl.png")
         .item-text 全体控制
-      .ctrl-item(:class="{active: openType === 'settings'}" @click="openType = 'settings'")
+      .ctrl-item(:class="{active: openType === 'settings'}" @click.stop="setOpenType('settings')" rel="settings")
         img.item-img(src="../../assets/images/room_set.png")
         .item-text 设置
     .class-status
       LxmBtn.class-btn(v-if="!classBegin && role === 0" @onClick="beginClass") 上课
       LxmBtn.class-btn(v-if="classBegin && (role === 0 || role === 1)" @onClick="endClass") 下课
-  StuList(v-if="openType === 'users'" :room="room")
-  Courseware(v-if="openType === 'files'")
+  StuList(v-if="openType === 'users'" :room="room" rel="users")
+  Courseware(v-if="openType === 'files'" rel="files")
 </template>
 
 <script>
@@ -99,7 +99,22 @@ export default {
       openType: ''
     }
   },
+  mounted () {
+    document.addEventListener('click', e => {
+      const type = this.openType
+      if (!document.querySelectorAll(`[rel="${type}"]`)[1]?.contains(e.target)) {
+        this.openType = ''
+      }
+    })
+  },
   methods: {
+    setOpenType (type) {
+      if (this.openType === type) {
+        this.openType = ''
+      } else {
+        this.openType = type
+      }
+    },
     // 上课
     beginClass () {
       this.room.pubMsg({

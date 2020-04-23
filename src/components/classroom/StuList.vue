@@ -132,7 +132,7 @@ export default {
           publishstate: TK.PUBLISH_STATE_MUTEALL
         })
       } else if (user.publishstate === TK.PUBLISH_STATE_BOTH) {
-        // 如果两者都发布了，则只为只发布音频
+        // 如果两者都发布了，则改为只发布音频
         this.room.changeUserProperty(user.id, TK.MSG_TO_ALLUSER, {
           publishstate: TK.PUBLISH_STATE_AUDIOONLY
         })
