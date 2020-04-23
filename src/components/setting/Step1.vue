@@ -34,6 +34,8 @@
           width 100%
           height 100%
           background-color transparent
+          &.mirror
+            transform rotateY(180deg)
         .no-video
           width 100%
           height 100%
@@ -81,12 +83,12 @@
       .device-video
         //- .no-video
         //-   img(src="../../assets/svg/svg_video_no.svg")
-        video#checkVideo(ref="videoRef")
+        video#checkVideo(ref="videoRef" :class="{mirror: mirror}")
   section
     .device-label 镜像模式
     .device-content
       .device-mirror
-        el-checkbox(v-model="mirror" @change="mirrorChange")
+        el-checkbox(v-model="mirror")
   section
     .device-tips
       p 温馨提示：如果您无法看到视频，请按以下方式排查问题
@@ -148,13 +150,6 @@ export default {
         video.autoplay = true;
         video.src = window.URL.createObjectURL(stream);
       });
-    },
-    mirrorChange () {
-      if (this.deviceId) {
-        this.deviceMgr.startVideoTest(this.deviceId, 'checkVideo', {
-          mirror: this.mirror
-        })
-      }
     },
     // 检测完成按钮
     stepChecked (val) {

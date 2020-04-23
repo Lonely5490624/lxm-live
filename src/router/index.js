@@ -13,6 +13,8 @@ import StuHome from '@/views/student/Home'
 import HistoryRoom from '@/views/student/HistoryRoom'
 import Mine from '@/views/student/Mine'
 import Setting from '@/views/Setting'
+import Teacher from '@/views/teacher/Index'
+import TeacherHome from '@/views/teacher/Home'
 
 Vue.use(VueRouter)
 
@@ -79,11 +81,22 @@ export const routes = [
     }]
   },
   {
+    path: '/teacher',
+    label: '教师',
+    component: Teacher,
+    redirect: '/teacher/home',
+    children: [{
+      path: '/teacher/home',
+      label: '教师主页',
+      component: TeacherHome
+    }]
+  },
+  {
     path: '/setting',
     component: Setting
   },
   {
-    path: '/classroom/:id',
+    path: '/classroom/:serial',
     component: Classroom
   },
   {

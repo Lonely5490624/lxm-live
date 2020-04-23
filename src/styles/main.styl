@@ -167,3 +167,19 @@ input[type="checkbox"]
   width 16px
   height 16px
   border 2px solid $inputPlace
+/* 修改el-checkbox样式 */
+.el-checkbox__input.is-focus .el-checkbox__inner, .el-checkbox__inner:hover
+  border-color $inputPlace
+.el-checkbox__input.is-checked .el-checkbox__inner, .el-checkbox__input.is-indeterminate .el-checkbox__inner
+  border-color $inputPlace
+  background-color $inputPlace
+/* lxm-loading样式 */
+.lxm-loading
+  .lxm-loading-img
+    width 140px
+    height 150px
+    display inline-block
+    background url('../assets/images/lxm.gif') center no-repeat
+    background-size 100%
+  .el-loading-text
+    color #fff

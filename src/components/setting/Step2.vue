@@ -48,7 +48,7 @@
           .volume-value
             color $inputPlace
             font-size 18px
-            margin-left 10px
+            margin-left 20px
     .step2-tips
       width 100%
       margin-top 40px

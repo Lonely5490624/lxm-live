@@ -97,7 +97,11 @@ export default {
         this.logining = false
         localStorage.setItem('token', res.data.token)
         localStorage.setItem('role', res.data.role)
-        this.$router.replace('/home')
+        if (res.data.role === 2) {
+          this.$router.replace('/stu/home')
+        } else {
+          this.$router.replace('/teacher/home')
+        }
       } else {
         this.setErrorMsg(res.msg)
         this.logining = false

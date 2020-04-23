@@ -1,6 +1,6 @@
 <style lang="stylus" scoped>
 .white-board
-  height 100%
+  // height 100%
   background-color #eee
   .wb-tool-list
     width 100%
@@ -11,8 +11,6 @@
 
 <template lang="pug">
   .white-board(ref="whiteBoardRef")
-    .wb-tool-list
-      .wb-tool-item
     canvas#white-board(ref="canvasRef" :width="width" :height="height" @mousedown="canvasMouseDown" @mousemove="canvasMouseMove" @mouseup="canvasMouseUp")
 </template>
 

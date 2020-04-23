@@ -26,6 +26,7 @@ module.exports = {
   },
   // 这里过滤不需要检查的全局变量
   "globals": {
-      "TK": "readonly"
+      "TK": "readonly",
+      "dispatcher": "readonly"
   }
 }

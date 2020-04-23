@@ -27,6 +27,22 @@ const filters = {
   },
   convertName (name) {
     return `${name.substring(0, 1)}老师`
+  },
+  networkFilter (status) {
+    switch (status) {
+      case 1:
+        return '优'
+      case 2:
+        return '良'
+      case 3:
+        return '中'
+      case 4:
+        return '差'
+      case 5:
+        return '极差'
+      default:
+        return '优'
+    }
   }
 }
 
