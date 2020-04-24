@@ -74,6 +74,52 @@
       text-align center
       border-radius 20px
       cursor pointer
+  .datiqi-answer
+    position relative
+    padding 0 50px 20px
+    .datiqi-close
+      position absolute
+      top -17px
+      right -13px
+    .datiqi-title
+      font-size 18px
+      color #666666
+      padding-top 20px
+      text-align center
+    .answer-content
+      margin-top 26px
+      .answer-title
+        display flex
+        justify-content space-between
+        align-items center
+        font-size 16px
+        color #666666
+        .title-switch
+          padding 5px
+          background-color $inputPlace
+          color #ffffff
+          border-radius 20px
+          cursor pointer
+      .answer-list
+        padding 20px 0
+        .list-item
+          display flex
+          justify-content space-between
+          align-items center
+          font-size 16px
+          color #666666
+          .item-answer
+            width 320px
+          & + .list-item
+            margin-top 20px
+      .answer-footer
+        display flex
+        justify-content space-between
+        align-items center
+        font-size 16px
+        color #666666
+        .footer-right
+          width 150px
 </style>
 
 <template lang="pug">
@@ -90,14 +136,53 @@
       .ctrl-item(v-else @click="delAnswer") 删除答案
     p.answer-tips 点击字母预设正确答案
     .datiqi-confirm(@click="sendAnswer") 发布答案
+  .datiqi-answer
+    Close.datiqi-close
+    .datiqi-title 答题器
+    .answer-content
+      .answer-title
+        .title-count 答题人数:0人
+        .title-time 用时:00:00:27
+        .title-switch 详情
+      .answer-list
+        .list-item(v-for="(val, key) in stuAnswerOptions" :key="key")
+          .item-option {{key}}
+          .item-answer
+            el-progress(:percentage="val.percent" :show-text="false")
+          .item-count {{val.count}}人
+        //- .list-item
+        //-   .item-option B
+        //-   .item-answer
+        //-     el-progress(:percentage="50" :show-text="false")
+        //-   .item-count 1人
+        //- .list-item
+        //-   .item-option C
+        //-   .item-answer
+        //-     el-progress(:percentage="50" :show-text="false")
+        //-   .item-count 1人
+        //- .list-item
+        //-   .item-option D
+        //-   .item-answer
+        //-     el-progress(:percentage="50" :show-text="false")
+        //-   .item-count 1人
+      //- .user-list
+      //-   .list-item
+      //-     .item-name 学生A
+      //-     .item-answer 所选答案:B
+      //-     .item-time 用时:00:12
+      .answer-footer
+        .footer-left 正确答案是:{{rightAnswer.join(',')}}
+        LxmBtn.footer-right(type="cancel") 结束答题
 </template>
 
 <script>
 import Close from '@/components/common/Close'
+import LxmBtn from '@/components/common/LxmBtn'
 
 export default {
   components: {
-    Close
+    Close,
+    LxmBtn
   },
   props: {
     room: Object
@@ -113,7 +198,61 @@ export default {
         6: 'G',
         7: 'H'
       },
-      answerList: ['A', 'B', 'C', 'D']
+      answerList: ['A', 'B', 'C', 'D'],
+      stuAnswers: [],
+      stuAnswerOptions: {
+        A: {
+          count: 0,
+          percent: 0
+        }, 
+        B: {
+          count: 0,
+          percent: 0
+        },
+        C: {
+          count: 0,
+          percent: 0
+        },
+        D: {
+          count: 0,
+          percent: 0
+        }
+      }
+    }
+  },
+  watch: {
+    answerList (val) {
+      this.stuAnswerOptions = {}
+      val.forEach(item => {
+        const obj = {
+          count: 0,
+          percent: 0
+        }
+        this.stuAnswerOptions[item] = obj
+      })
+    }
+  },
+  mounted () {
+    this.room.addEventListener(TK.EVENT_TYPE.roomPubmsg, (e) => {
+      // 答题器答案事件
+      if (e?.message?.name === 'Answer') {
+        const thisStu = this.stuAnswers.find(item => item.userId === e.message.data.userId)
+        if (thisStu) {
+          const index = this.stuAnswers.indexOf(thisStu)
+          if (index > -1) {
+            this.stuAnswers[index] = e.message?.data
+          }
+        } else {
+          this.stuAnswers.push(e.message?.data)
+        }
+        this.statAnswer()
+      }
+    })
+    window.addAnswer = (name, arr) => {
+      this.stuAnswers.push({
+        answer: arr,
+        name
+      })
     }
   },
   methods: {
@@ -126,6 +265,7 @@ export default {
       } else {
         this.rightAnswer.push(item)
       }
+      this.rightAnswer.sort()
     },
     addAnswer () {
       this.answerList.push(this.answerObj[this.answerList.length])
@@ -151,6 +291,20 @@ export default {
       } else {
         this.$message.error('请选择一个答案发送')
       }
+    },
+    // 答案统计
+    statAnswer () {
+      const allCount = this.stuAnswers.reduce((sum, item) => sum + item.answer.length, 0)
+      this.answerList.forEach(item => {
+        let count = 0
+        this.stuAnswers.forEach(ele => {
+          if (ele.answer.includes(item)) {
+            count ++
+          }
+        })
+        this.stuAnswerOptions[item].count = count
+        this.stuAnswerOptions[item].percent = Math.round(count / allCount * 100)
+      })
     }
   }
 }

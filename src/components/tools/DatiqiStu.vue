@@ -91,7 +91,9 @@ export default {
     sendAnswer () {
       if (this.myAnswer) {
         const data = {
-          myAnswer: this.myAnswer
+          answer: this.myAnswer,
+          name: this.room.getMySelf().nickname,
+          userId: this.room.getMySelf().id
         }
         this.room.pubMsg({
           name: 'Answer',
