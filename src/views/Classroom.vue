@@ -195,7 +195,7 @@
       .class-whiteboard
         //- WhiteBoard
         Datiqi(v-if="role === 0" :room="room")
-        DatiqiStu(v-if="role === 2 && datiqiStu" :room="room" :answerList="answerList")
+        DatiqiStu(v-if="role === 2 && datiqiStu" :room="room" :answerList="answerList" :teacher="teacher")
       #stu-videos.class-stu-videos(ref="stuVideoList")
         template(v-for="item in students")
           .stu-video(:key="item.id" :id="`video-${item.id}`" v-if="item.publishstate")
@@ -293,6 +293,10 @@ export default {
       if (e?.message.name === 'Question') {
         this.datiqiStu = true
         this.answerList = e.message.data.options
+      }
+      // 答题器答案事件
+      if (e?.message?.name === 'Answer') {
+        console.log('答案', e)
       }
     })
     // 监听下课事件

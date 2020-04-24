@@ -1,7 +1,6 @@
 <style lang="stylus" scoped>
 .datiqi-box
-  min-width 510px
-  height 240px
+  width 510px
   background-color #fff
   border-radius 20px
   position absolute
@@ -24,8 +23,7 @@
       text-align center
     .answer-list
       display flex
-      margin-top 26px
-      justify-content center
+      flex-wrap wrap
       .answer-item
         width 65px
         height 65px
@@ -37,14 +35,15 @@
         text-align center
         line-height 65px
         cursor pointer
+        margin-top 26px
         & + .answer-item
           margin-left 50px
+        &:nth-of-type(4n+1)
+          margin-left 0
         &.current
           background-color $roomDeepGreen
     .datiqi-confirm
-      position absolute
-      bottom 20px
-      left 50%
+      margin-left 50%
       transform translateX(-50%)
       width 120px
       line-height 40px
@@ -54,41 +53,52 @@
       text-align center
       border-radius 20px
       cursor pointer
+      margin-top 26px
 </style>
 
 <template lang="pug">
 .datiqi-box
   .datiqi-content
-    Close.datiqi-close
     .datiqi-title 答题器
     .answer-list
-      .answer-item(v-for="(item, index) in answerList" :key="index" @click="setAnswer(item)" :class="{current: myAnswer === item}") {{item}}
+      .answer-item(v-for="(item, index) in answerList" :key="index" @click="setAnswer(item)" :class="{current: myAnswer.includes(item)}") {{item}}
     .datiqi-confirm(@click="sendAnswer") 提交答案
 </template>
 
 <script>
-import Close from '@/components/common/Close'
-
 export default {
-  components: {
-    Close
-  },
   props: {
     room: Object,
-    answerList: Array
+    answerList: Array,
+    teacher: Object
   },
   data () {
     return {
-      myAnswer: ''
+      myAnswer: []
     }
   },
   methods: {
     setAnswer (item) {
-      this.myAnswer = item
+      if (this.myAnswer.includes(item)) {
+        let index = this.myAnswer.indexOf(item)
+        if (index > -1) {
+          this.myAnswer.splice(index, 1)
+        }
+      } else {
+        this.myAnswer.push(item)
+      }
     },
     sendAnswer () {
-      if (this.rightAnswer) {
-        // 
+      if (this.myAnswer) {
+        const data = {
+          myAnswer: this.myAnswer
+        }
+        this.room.pubMsg({
+          name: 'Answer',
+          id: `Answer_${this.room.getMySelf().id}_${new Date().getTime()}`,
+          toID: this.teacher.id,
+          data: JSON.stringify(data)
+        })
       } else {
         this.$message.error('请选择一个答案提交')
       }
