@@ -60,7 +60,7 @@
       .ctrl-item(:class="{active: openType === 'files'}" @click.stop="setOpenType('files')" rel="files")
         img.item-img(src="../../assets/images/room_course.png")
         .item-text 课件库
-      .ctrl-item(v-if="classBegin" :class="{active: openType === 'tools'}" @click.stop="setOpenType('tools')" rel="tools")
+      .ctrl-item(v-if="" :class="{active: openType === 'tools'}" @click.stop="setOpenType('tools')" rel="tools")
         img.item-img(src="../../assets/images/room_tool.png")
         .item-text 工具箱
       .ctrl-item(v-if="classBegin" :class="{active: openType === 'ctrls'}" @click.stop="setOpenType('ctrls')" rel="ctrls")
@@ -74,18 +74,21 @@
       LxmBtn.class-btn(v-if="classBegin && (role === 0 || role === 1)" @onClick="endClass") 下课
   StuList(v-if="openType === 'users'" :room="room" rel="users")
   Courseware(v-if="openType === 'files'" rel="files")
+  Tools(v-if="openType === 'tools'" rel="tools")
 </template>
 
 <script>
 import LxmBtn from '@/components/common/LxmBtn'
 import StuList from '@/components/classroom/StuList'
 import Courseware from '@/components/classroom/Courseware'
+import Tools from '@/components/classroom/Tools'
 
 export default {
   components: {
     LxmBtn,
     StuList,
-    Courseware
+    Courseware,
+    Tools
   },
   props: {
     role: Number,

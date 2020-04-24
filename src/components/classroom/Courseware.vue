@@ -8,6 +8,7 @@
   background-color rgba(30,148,100,.9)
   padding 15px 25px 0 15px
   display flex
+  z-index 99
   .courseware-nav
     width 90px
     flex-shrink 0

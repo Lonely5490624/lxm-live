@@ -16,6 +16,9 @@
       flex-direction column
       .class-whiteboard
         // flex-grow 1
+        height 100%
+        position relative
+        background-color #ccc
       .class-stu-videos
         display flex
         justify-content center
@@ -99,6 +102,7 @@
         border-radius 20px
         flex-shrink 1
         margin-top 20px
+        overflow hidden
 </style>
 <style lang="stylus">
 .class-stu-videos
@@ -188,7 +192,10 @@
   Header(:role="role" :room="room" :classBegin.sync="classBegin" :networkStatus="networkStatus" :files="files")
   .classroom-content
     .class-board
-      WhiteBoard.class-whiteboard
+      .class-whiteboard
+        //- WhiteBoard
+        Datiqi(v-if="role === 0" :room="room")
+        DatiqiStu(v-if="role === 2 && datiqiStu" :room="room" :answerList="answerList")
       #stu-videos.class-stu-videos(ref="stuVideoList")
         template(v-for="item in students")
           .stu-video(:key="item.id" :id="`video-${item.id}`" v-if="item.publishstate")
@@ -220,17 +227,24 @@
             .voice-volume(:style="{width: `${teacherVolume / 10 * .4}rem`}")
           .bottom-voice(style="justify-content: flex-end;" v-else)
             i.icon-btn_mute
-      .class-chart 聊天室
+      .class-chart
+        ChartRoom(:room="room" :students="students" :role="role" :muteAll="muteAll")
 </template>
 
 <script>
 import Header from '@/components/classroom/Header'
 import WhiteBoard from '@/components/common/WhiteBoard'
+import ChartRoom from '@/components/classroom/ChartRoom'
+import Datiqi from '@/components/tools/Datiqi'
+import DatiqiStu from '@/components/tools/DatiqiStu'
 
 export default {
   components: {
     Header,
-    WhiteBoard
+    WhiteBoard,
+    ChartRoom,
+    Datiqi,
+    DatiqiStu
   },
   data () {
     return {
@@ -242,7 +256,14 @@ export default {
       students: [],
       teacher: null,
       files: [],
-      teacherVolume: 0
+      teacherVolume: 0,
+      datiqiStu: false,
+      answerList: []
+    }
+  },
+  computed: {
+    muteAll () {
+      return this.students.every(item => item.disablechat)
     }
   },
   beforeMount () {
@@ -262,15 +283,21 @@ export default {
     })
     // 监听上课事件
     this.room.addEventListener(TK.EVENT_TYPE.roomPubmsg, (e) => {
-      if (e?.message?.id === 'ClassBegin') {
+      // 上课事件
+      if (e?.message?.name === 'ClassBegin') {
         this.classBegin = true
         this.room.publishVideo()
         this.getUsers()
       }
+      // 答题器事件
+      if (e?.message.name === 'Question') {
+        this.datiqiStu = true
+        this.answerList = e.message.data.options
+      }
     })
     // 监听下课事件
     this.room.addEventListener(TK.EVENT_TYPE.roomDelmsg, (e) => {
-      if (e?.message?.id === 'ClassBegin') {
+      if (e?.message?.name === 'ClassBegin') {
         this.classBegin = false
         this.room.unpublishVideo()
         this.getUsers()
@@ -431,42 +458,12 @@ export default {
         console.log('播放失败', err)
       })
     },
+    // 停止播放老师视频
     stopTeacherVideo () {
       this.room.unplayVideo(this.teacher.id)
     },
-    // 添加学生视频的dom
-    addStuVideoDom () {
-      // const stuId = stu.id
-      // const domId = 'video-' + stuId
-      // let stuVideoDom = document.getElementById(domId)
-      // if (!stuVideoDom) {
-      //   stuVideoDom = document.createElement('div')
-      //   stuVideoDom.setAttribute('id', domId)
-      //   stuVideoDom.setAttribute('class', 'stu-video')
-      //   const bottomDom = `
-      //     <div class="video-bottom">
-      //       <div class="bottom-name">
-      //         ${stu.nickname}
-      //       </div>
-      //       ${stu.publishstate === 1 || stu.publishstate === 3 ?
-      //       // eslint-disable-next-line no-multi-str
-      //       '<div class="bottom-voice">\
-      //         <i class="icon-btn_audio"></i>\
-      //         <div class="voice-volume"></div>\
-      //       </div>' :
-      //       // eslint-disable-next-line no-multi-str
-      //       '<div class="bottom-voice" style="justify-content: flex-end;">\
-      //         <i class="icon-btn_mute"></i>\
-      //       </div>'}
-      //     </div>
-      //   `
-      //   stuVideoDom.innerHTML = bottomDom
-      //   this.$refs.stuVideoList.appendChild(stuVideoDom)
-      // }
-    },
     // 播放学生视频
     playStuVideo (stu) {
-      this.addStuVideoDom(stu)
       this.room.playVideo(stu.id || '', `video-${stu.id}`, {}, err => {
         console.log('播放学生视频失败', err)
       })

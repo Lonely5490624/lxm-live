@@ -7,7 +7,7 @@
   width 640px
   background-color rgba(30,148,100,.9)
   padding 15px 25px 0 15px
-  z-index 1
+  z-index 99
   .stu-header
     display flex
     justify-content space-between
