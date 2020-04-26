@@ -134,6 +134,17 @@
         align-items center
         font-size 16px
         color #666666
+        .footer-left
+          span
+            display inline-block
+            width 80px
+            height 26px
+            line-height 26px
+            text-align center
+            margin-left 10px
+            border-radius 13px
+            background-color $inputPlace
+            color #ffffff
         .footer-right
           width 150px
 </style>
@@ -141,7 +152,7 @@
 <template lang="pug">
 .datiqi-box
   .datiqi-content(v-if="type === 'setAnswer'")
-    Close.datiqi-close
+    Close.datiqi-close(@onClose="endQuestion")
     .datiqi-title 答题器
     .answer-list
       .answer-item(v-for="(item, index) in answerList" :key="index" @click="setAnswer(item)" :class="{current: rightAnswer.includes(item)}") {{item}}
@@ -152,8 +163,8 @@
       .ctrl-item(v-else @click="delAnswer") 删除答案
     p.answer-tips 点击字母预设正确答案
     .datiqi-confirm(@click="sendAnswer") 发布答案
-  .datiqi-answer(v-if="type === 'waitAnswer'")
-    Close.datiqi-close(@onClose="$emit('onClose', 'datiqi')")
+  .datiqi-answer(v-if="type === 'waitAnswer' || type === 'stopAnswer'")
+    Close.datiqi-close(@onClose="endQuestion")
     .datiqi-title 答题器
     .answer-content
       .answer-title
@@ -171,9 +182,14 @@
           .item-answer
             el-progress(:percentage="val.percent" :show-text="false")
           .item-count {{val.count}}人
-      .answer-footer
+      .answer-footer(v-if="type === 'waitAnswer'")
         .footer-left 正确答案是:{{rightAnswer.join(',')}}
-        LxmBtn.footer-right(type="cancel") 结束答题
+        LxmBtn.footer-right(type="cancel" @onClick="stopAnswer") 结束答题
+      .answer-footer(v-if="type === 'stopAnswer'")
+        .footer-left 正确答案是:{{rightAnswer.join(',')}}
+          span(v-if="answerPubState") 已公布
+          span(v-else @click="pubAnswer" style="cursor: pointer;") 公布结果
+        LxmBtn.footer-right(type="cancel" @onClick="resetStart") 重新开始
 </template>
 
 <script>
@@ -222,7 +238,8 @@ export default {
       type: 'setAnswer',
       showDetail: false,
       time: 0,
-      timer: null
+      timer: null,
+      answerPubState: false
     }
   },
   watch: {
@@ -316,6 +333,54 @@ export default {
         this.stuAnswerOptions[item].count = count
         this.stuAnswerOptions[item].percent = Math.round(count / allCount * 100)
       })
+    },
+    // 结束答题
+    stopAnswer () {
+      this.type = 'stopAnswer'
+      const data = {
+        answerList: this.answerList,
+        stuAnswers: this.stuAnswers,
+        alltime: this.time
+      }
+      this.room.pubMsg({
+        name: 'StopQuestion',
+        id: `StopQuestion_${new Date().getTime()}`,
+        toID: TK.MSG_TO_ALLUSER,
+        data: JSON.stringify(data)
+      })
+      this.clearTime()
+    },
+    // 关闭答题器
+    endQuestion () {
+      this.room.pubMsg({
+        name: 'EndQuestion',
+        id: `EndQuestion_${new Date().getTime()}`,
+        toID: TK.MSG_TO_ALLUSER,
+        data: ''
+      })
+      this.$emit('onClose', 'datiqi')
+    },
+    // 重新开始
+    resetStart () {
+      this.room.pubMsg({
+        name: 'EndQuestion',
+        id: `EndQuestion_${new Date().getTime()}`,
+        toID: TK.MSG_TO_ALLUSER,
+        data: ''
+      })
+      this.type = 'setAnswer'
+    },
+    pubAnswer () {
+      const data = {
+        rightAnswer: this.rightAnswer
+      }
+      this.room.pubMsg({
+        name: 'PubAnswer',
+        id: `PubAnswer_${new Date().getTime()}`,
+        toID: TK.MSG_TO_ALLUSER,
+        data: JSON.stringify(data)
+      })
+      this.answerPubState = true
     },
     // 开始计时
     beginTime () {

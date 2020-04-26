@@ -195,7 +195,7 @@
       .class-whiteboard
         //- WhiteBoard
         Datiqi(v-if="role === 0 && toolsShow.datiqi" :room="room" @onClose="closeTools")
-        DatiqiStu(v-if="role === 2 && datiqiStu" :room="room" :answerList="answerList" :teacher="teacher")
+        DatiqiStu(v-if="role === 2 && toolsShow.datiqiStu" :room="room" :answerList="answerList" :teacher="teacher")
       #stu-videos.class-stu-videos(ref="stuVideoList")
         template(v-for="item in students")
           .stu-video(:key="item.id" :id="`video-${item.id}`" v-if="item.publishstate")
@@ -257,10 +257,10 @@ export default {
       teacher: null,
       files: [],
       teacherVolume: 0,
-      datiqiStu: false,
       answerList: [],
       toolsShow: {
-        datiqi: false
+        datiqi: false,
+        datiqiStu: false
       }
     }
   },
@@ -294,12 +294,16 @@ export default {
       }
       // 答题器事件
       if (e?.message.name === 'Question') {
-        this.datiqiStu = true
+        this.toolsShow.datiqiStu = true
         this.answerList = e.message.data.options
       }
       // 答题器答案事件
       if (e?.message?.name === 'Answer') {
         console.log('答案', e)
+      }
+      // 结束答题，此时关闭学生的答题器
+      if (e.message?.name === 'EndQuestion') {
+        this.toolsShow.datiqiStu = false
       }
     })
     // 监听下课事件
