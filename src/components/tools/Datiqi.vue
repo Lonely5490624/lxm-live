@@ -102,6 +102,7 @@
           cursor pointer
       .answer-list
         padding 20px 0
+        min-height 165px
         .list-item
           display flex
           justify-content space-between
@@ -112,6 +113,21 @@
             width 320px
           & + .list-item
             margin-top 20px
+      .user-list
+        padding 20px 0
+        min-height 165px
+        .list-item
+          display flex
+          justify-content space-between
+          align-items center
+          font-size 16px
+          color #ffffff
+          height 40px
+          padding 0 10px
+          border-radius 5px
+          background-color $inputPlace
+          & + .list-item
+            margin-top 15px
       .answer-footer
         display flex
         justify-content space-between
@@ -124,7 +140,7 @@
 
 <template lang="pug">
 .datiqi-box
-  .datiqi-content
+  .datiqi-content(v-if="type === 'setAnswer'")
     Close.datiqi-close
     .datiqi-title 答题器
     .answer-list
@@ -136,40 +152,25 @@
       .ctrl-item(v-else @click="delAnswer") 删除答案
     p.answer-tips 点击字母预设正确答案
     .datiqi-confirm(@click="sendAnswer") 发布答案
-  .datiqi-answer
-    Close.datiqi-close
+  .datiqi-answer(v-if="type === 'waitAnswer'")
+    Close.datiqi-close(@onClose="$emit('onClose', 'datiqi')")
     .datiqi-title 答题器
     .answer-content
       .answer-title
-        .title-count 答题人数:0人
-        .title-time 用时:00:00:27
-        .title-switch 详情
-      .answer-list
+        .title-count 答题人数:{{stuAnswers.length}}人
+        .title-time 用时:{{time | formatTime}}
+        .title-switch(@click="showDetail = !showDetail") {{showDetail ? '统计' : '详情'}}
+      .user-list(v-if="showDetail")
+        .list-item(v-for="(item, index) in stuAnswers" :key="index")
+          .item-name {{item.name}}
+          .item-answer 所选答案:{{item.answer.join(',')}}
+          .item-time 用时:{{item.time | formatTime}}
+      .answer-list(v-else)
         .list-item(v-for="(val, key) in stuAnswerOptions" :key="key")
           .item-option {{key}}
           .item-answer
             el-progress(:percentage="val.percent" :show-text="false")
           .item-count {{val.count}}人
-        //- .list-item
-        //-   .item-option B
-        //-   .item-answer
-        //-     el-progress(:percentage="50" :show-text="false")
-        //-   .item-count 1人
-        //- .list-item
-        //-   .item-option C
-        //-   .item-answer
-        //-     el-progress(:percentage="50" :show-text="false")
-        //-   .item-count 1人
-        //- .list-item
-        //-   .item-option D
-        //-   .item-answer
-        //-     el-progress(:percentage="50" :show-text="false")
-        //-   .item-count 1人
-      //- .user-list
-      //-   .list-item
-      //-     .item-name 学生A
-      //-     .item-answer 所选答案:B
-      //-     .item-time 用时:00:12
       .answer-footer
         .footer-left 正确答案是:{{rightAnswer.join(',')}}
         LxmBtn.footer-right(type="cancel") 结束答题
@@ -217,7 +218,11 @@ export default {
           count: 0,
           percent: 0
         }
-      }
+      },
+      type: 'setAnswer',
+      showDetail: false,
+      time: 0,
+      timer: null
     }
   },
   watch: {
@@ -236,6 +241,7 @@ export default {
     this.room.addEventListener(TK.EVENT_TYPE.roomPubmsg, (e) => {
       // 答题器答案事件
       if (e?.message?.name === 'Answer') {
+        e.message.data.time = this.time
         const thisStu = this.stuAnswers.find(item => item.userId === e.message.data.userId)
         if (thisStu) {
           const index = this.stuAnswers.indexOf(thisStu)
@@ -254,6 +260,9 @@ export default {
         name
       })
     }
+  },
+  beforeDestroy () {
+    this.clearTime()
   },
   methods: {
     setAnswer (item) {
@@ -288,6 +297,8 @@ export default {
           toID: TK.MSG_TO_ALLUSER,
           data: JSON.stringify(data)
         })
+        this.type = 'waitAnswer'
+        this.beginTime()
       } else {
         this.$message.error('请选择一个答案发送')
       }
@@ -305,6 +316,15 @@ export default {
         this.stuAnswerOptions[item].count = count
         this.stuAnswerOptions[item].percent = Math.round(count / allCount * 100)
       })
+    },
+    // 开始计时
+    beginTime () {
+      this.timer = setInterval(() => {
+        this.time ++
+      }, 1000);
+    },
+    clearTime () {
+      clearInterval(this.timer)
     }
   }
 }

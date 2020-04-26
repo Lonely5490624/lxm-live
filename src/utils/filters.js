@@ -25,6 +25,12 @@ const filters = {
     const day = newDatetime.getDate()
     return `${year}/${month < 10 ? '0' + month : month}/${day < 10 ? '0' + day : day}`
   },
+  formatTime (time) {
+    if (typeof time !== 'number') return time
+    const minute = Math.floor(time / 60)
+    const second = time - minute * 60
+    return `${minute < 10 ? '0' + minute : minute}:${second < 10 ? '0' + second : second}`
+  },
   convertName (name) {
     return `${name.substring(0, 1)}老师`
   },

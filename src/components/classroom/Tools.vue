@@ -41,7 +41,7 @@
 
 <template lang="pug">
 .tool-box
-  .tool-item
+  .tool-item(@click="$emit('showTools', 'datiqi')")
     .item-icon
       i.icon-hold_datiqi
     .item-text 答题器

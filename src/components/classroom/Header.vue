@@ -74,7 +74,7 @@
       LxmBtn.class-btn(v-if="classBegin && (role === 0 || role === 1)" @onClick="endClass") 下课
   StuList(v-if="openType === 'users'" :room="room" rel="users")
   Courseware(v-if="openType === 'files'" rel="files")
-  Tools(v-if="openType === 'tools'" rel="tools")
+  Tools(v-if="openType === 'tools'" rel="tools" @showTools="data => $emit('showTools', data)")
 </template>
 
 <script>

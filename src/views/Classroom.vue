@@ -189,12 +189,12 @@
 
 <template lang="pug">
 .classroom
-  Header(:role="role" :room="room" :classBegin.sync="classBegin" :networkStatus="networkStatus" :files="files")
+  Header(:role="role" :room="room" :classBegin.sync="classBegin" :networkStatus="networkStatus" :files="files" @showTools="showTools")
   .classroom-content
     .class-board
       .class-whiteboard
         //- WhiteBoard
-        Datiqi(v-if="role === 0" :room="room")
+        Datiqi(v-if="role === 0 && toolsShow.datiqi" :room="room" @onClose="closeTools")
         DatiqiStu(v-if="role === 2 && datiqiStu" :room="room" :answerList="answerList" :teacher="teacher")
       #stu-videos.class-stu-videos(ref="stuVideoList")
         template(v-for="item in students")
@@ -258,7 +258,10 @@ export default {
       files: [],
       teacherVolume: 0,
       datiqiStu: false,
-      answerList: []
+      answerList: [],
+      toolsShow: {
+        datiqi: false
+      }
     }
   },
   computed: {
@@ -582,6 +585,27 @@ export default {
       this.room.changeUserProperty(stu.id, TK.MSG_TO_ALLUSER, {
         publishstate: TK.PUBLISH_STATE_NONE
       })
+    },
+    // 打开工具箱里面的工具
+    showTools (item) {
+      switch (item) {
+        case 'datiqi':
+          this.toolsShow.datiqi = true
+          break;
+        default:
+          break;
+      }
+    },
+    // 关闭工具箱里面的工具
+    closeTools (item) {
+      console.log(11111, item)
+      switch (item) {
+        case 'datiqi':
+          this.toolsShow.datiqi = false
+          break;
+        default:
+          break;
+      }
     }
   }
 }
