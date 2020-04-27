@@ -53,7 +53,7 @@
     .item-icon
       i.icon-hold_jishiqi
     .item-text 计时器
-  .tool-item
+  .tool-item(@click="$emit('showTools', 'qiangdaqi')")
     .item-icon
       i.icon-hold_qingdaqi
     .item-text 抢答器

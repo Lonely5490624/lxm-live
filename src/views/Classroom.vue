@@ -198,6 +198,8 @@
         DatiqiStu(v-if="role === 2 && toolsShow.datiqiStu" :room="room" :answerList="answerList" :teacher="teacher")
         Jishiqi(v-if="role === 0 && toolsShow.jishiqi" :room="room" @onClose="closeTools")
         JishiqiStu(v-show="role === 2 && toolsShow.jishiqiStu" :room="room")
+        Qiangdaqi(v-if="role === 0 && toolsShow.qiangdaqi" :room="room" @onClose="closeTools")
+        QiangdaqiStu(v-if="role === 2 && toolsShow.qiangdaqiStu" :room="room")
       #stu-videos.class-stu-videos(ref="stuVideoList")
         template(v-for="item in students")
           .stu-video(:key="item.id" :id="`video-${item.id}`" v-if="item.publishstate")
@@ -241,6 +243,8 @@ import Datiqi from '@/components/tools/Datiqi'
 import DatiqiStu from '@/components/tools/DatiqiStu'
 import Jishiqi from '@/components/tools/Jishiqi'
 import JishiqiStu from '@/components/tools/JishiqiStu'
+import Qiangdaqi from '@/components/tools/Qiangdaqi'
+import QiangdaqiStu from '@/components/tools/QiangdaqiStu'
 
 export default {
   components: {
@@ -250,7 +254,9 @@ export default {
     Datiqi,
     DatiqiStu,
     Jishiqi,
-    JishiqiStu
+    JishiqiStu,
+    Qiangdaqi,
+    QiangdaqiStu
   },
   data () {
     return {
@@ -268,7 +274,9 @@ export default {
         datiqi: false,
         datiqiStu: false,
         jishiqi: false,
-        jishiqiStu: false
+        jishiqiStu: false,
+        qiangdaqi: false,
+        qiangdaqiStu: false
       }
     }
   },
@@ -320,6 +328,14 @@ export default {
       // 计时器结束事件
       if (e.message?.name === 'TimerStop') {
         this.toolsShow.jishiqiStu = false
+      }
+      // 抢答器开始事件
+      if (e.message?.name === 'Qiangdaqi') {
+        this.toolsShow.qiangdaqiStu = true
+      }
+      // 抢答器结束事件
+      if (e.message?.name === 'QiangdaqiEnded') {
+        this.toolsShow.qiangdaqiStu = false
       }
     })
     // 监听下课事件
@@ -615,6 +631,9 @@ export default {
         case 'jishiqi':
           this.toolsShow.jishiqi = true
           break
+        case 'qiangdaqi':
+          this.toolsShow.qiangdaqi = true
+          break
         default:
           break
       }
@@ -628,6 +647,9 @@ export default {
           break
         case 'jishiqi':
           this.toolsShow.jishiqi = false
+          break
+        case 'qiangdaqi':
+          this.toolsShow.qiangdaqi = false
           break
         default:
           break;
