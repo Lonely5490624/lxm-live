@@ -49,7 +49,7 @@
     .item-icon
       i.icon-hold_zhuanpan
     .item-text 转盘
-  .tool-item
+  .tool-item(@click="$emit('showTools', 'jishiqi')")
     .item-icon
       i.icon-hold_jishiqi
     .item-text 计时器

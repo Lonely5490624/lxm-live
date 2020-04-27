@@ -196,6 +196,8 @@
         //- WhiteBoard
         Datiqi(v-if="role === 0 && toolsShow.datiqi" :room="room" @onClose="closeTools")
         DatiqiStu(v-if="role === 2 && toolsShow.datiqiStu" :room="room" :answerList="answerList" :teacher="teacher")
+        Jishiqi(v-if="role === 0 && toolsShow.jishiqi" :room="room" @onClose="closeTools")
+        JishiqiStu(v-show="role === 2 && toolsShow.jishiqiStu" :room="room")
       #stu-videos.class-stu-videos(ref="stuVideoList")
         template(v-for="item in students")
           .stu-video(:key="item.id" :id="`video-${item.id}`" v-if="item.publishstate")
@@ -237,6 +239,8 @@ import WhiteBoard from '@/components/common/WhiteBoard'
 import ChartRoom from '@/components/classroom/ChartRoom'
 import Datiqi from '@/components/tools/Datiqi'
 import DatiqiStu from '@/components/tools/DatiqiStu'
+import Jishiqi from '@/components/tools/Jishiqi'
+import JishiqiStu from '@/components/tools/JishiqiStu'
 
 export default {
   components: {
@@ -244,7 +248,9 @@ export default {
     WhiteBoard,
     ChartRoom,
     Datiqi,
-    DatiqiStu
+    DatiqiStu,
+    Jishiqi,
+    JishiqiStu
   },
   data () {
     return {
@@ -260,7 +266,9 @@ export default {
       answerList: [],
       toolsShow: {
         datiqi: false,
-        datiqiStu: false
+        datiqiStu: false,
+        jishiqi: false,
+        jishiqiStu: false
       }
     }
   },
@@ -304,6 +312,14 @@ export default {
       // 结束答题，此时关闭学生的答题器
       if (e.message?.name === 'EndQuestion') {
         this.toolsShow.datiqiStu = false
+      }
+      // 计时器事件
+      if (e.message?.name === 'Timer') {
+        this.toolsShow.jishiqiStu = true
+      }
+      // 计时器结束事件
+      if (e.message?.name === 'TimerStop') {
+        this.toolsShow.jishiqiStu = false
       }
     })
     // 监听下课事件
@@ -595,9 +611,12 @@ export default {
       switch (item) {
         case 'datiqi':
           this.toolsShow.datiqi = true
-          break;
+          break
+        case 'jishiqi':
+          this.toolsShow.jishiqi = true
+          break
         default:
-          break;
+          break
       }
     },
     // 关闭工具箱里面的工具
@@ -606,7 +625,10 @@ export default {
       switch (item) {
         case 'datiqi':
           this.toolsShow.datiqi = false
-          break;
+          break
+        case 'jishiqi':
+          this.toolsShow.jishiqi = false
+          break
         default:
           break;
       }
