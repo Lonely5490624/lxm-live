@@ -9,6 +9,7 @@
   background url('../../assets/images/qiangdaqi.png') center no-repeat
   background-size 100%
   text-align center
+  z-index 99
   .qiangdaqi-close
     position absolute
     top 5px

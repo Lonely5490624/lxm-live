@@ -63,7 +63,7 @@
       .ctrl-item(v-if="" :class="{active: openType === 'tools'}" @click.stop="setOpenType('tools')" rel="tools")
         img.item-img(src="../../assets/images/room_tool.png")
         .item-text 工具箱
-      .ctrl-item(v-if="classBegin" :class="{active: openType === 'ctrls'}" @click.stop="setOpenType('ctrls')" rel="ctrls")
+      .ctrl-item(v-if="" :class="{active: openType === 'ctrls'}" @click.stop="setOpenType('ctrls')" rel="ctrls")
         img.item-img(src="../../assets/images/room_ctrl.png")
         .item-text 全体控制
       .ctrl-item(:class="{active: openType === 'settings'}" @click.stop="setOpenType('settings')" rel="settings")
@@ -74,7 +74,7 @@
       LxmBtn.class-btn(v-if="classBegin && (role === 0 || role === 1)" @onClick="endClass") 下课
   StuList(v-if="openType === 'users'" :room="room" rel="users")
   Courseware(v-if="openType === 'files'" rel="files")
-  Tools(v-if="openType === 'tools'" rel="tools" @showTools="data => $emit('showTools', data)")
+  Tools(v-if="openType === 'tools'" rel="tools" @showTools="data => {$emit('showTools', data);openType = false}")
 </template>
 
 <script>
