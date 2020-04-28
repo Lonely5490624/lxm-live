@@ -75,6 +75,7 @@
   StuList(v-if="openType === 'users'" :room="room" rel="users")
   Courseware(v-if="openType === 'files'" rel="files")
   Tools(v-if="openType === 'tools'" rel="tools" @showTools="data => {$emit('showTools', data);openType = false}")
+  Control(v-if="openType === 'ctrls'" rel="ctrls" :students="students" :room="room")
 </template>
 
 <script>
@@ -82,20 +83,23 @@ import LxmBtn from '@/components/common/LxmBtn'
 import StuList from '@/components/classroom/StuList'
 import Courseware from '@/components/classroom/Courseware'
 import Tools from '@/components/classroom/Tools'
+import Control from '@/components/classroom/Control'
 
 export default {
   components: {
     LxmBtn,
     StuList,
     Courseware,
-    Tools
+    Tools,
+    Control
   },
   props: {
     role: Number,
     room: Object,
     networkStatus: Object,
     classBegin: Boolean,
-    files: Array
+    files: Array,
+    students: Array
   },
   data () {
     return {

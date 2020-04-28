@@ -189,7 +189,7 @@
 
 <template lang="pug">
 .classroom
-  Header(:role="role" :room="room" :classBegin.sync="classBegin" :networkStatus="networkStatus" :files="files" @showTools="showTools")
+  Header(:role="role" :room="room" :classBegin.sync="classBegin" :networkStatus="networkStatus" :files="files" @showTools="showTools" :students="students")
   .classroom-content
     .class-board
       .class-whiteboard
