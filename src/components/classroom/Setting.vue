@@ -101,6 +101,24 @@
             line-height 24px
             padding 0 30px 0 42px
             margin-top 20px
+          .audio-content
+            padding-left 42px
+            .audio-tips
+              font-size 14px
+              color #999999
+              margin-top 40px
+            .audio-volume-list
+              display flex
+              margin-top 30px
+              .audio-volume-item
+                width 10px
+                height 33px
+                background-color #FFF3CB
+                border-radius 5px
+                & + .audio-volume-item
+                  margin-left 10px
+                &.active
+                  background-color $inputPlace
         .device-ctrl
           .device-btn
             width 120px
@@ -116,10 +134,12 @@
             bottom 30px
             right 30px
         .voice-tips
+          padding-left 42px
           font-size 16px
           color $inputPlace
           margin-top 30px
         .audio-play
+          padding-left 42px
           display flex
           align-items center
           margin-top 25px
@@ -183,7 +203,7 @@
       .nav-item(:class="{current: step === 1}" @click="step = 1") 视频检测
       .nav-item(:class="{current: step === 2}" @click="step = 2") 扬声器检测
       .nav-item(:class="{current: step === 3}" @click="step = 3") 麦克风检测
-      .nav-item(:class="{current: step === 4}" @click="step = 4") 系统信息
+      //- .nav-item(:class="{current: step === 4}" @click="step = 4") 系统信息
     .content-main
       .main-item(v-if="step === 1")
         section.item-section
@@ -247,9 +267,40 @@
             p 6、重启电脑。
         .device-ctrl
           .device-btn(@click="confirm") 确定
+      .main-item(v-if="step === 3")
+        section.item-section
+          label.item-label 麦克风选项
+          content.item-content
+            el-select.setting-select(v-model="audioinputId" @change="changeAduio")
+              el-option(
+                v-for="item in devices && devices.devices.audioinput"
+                :key="item.deviceId"
+                :value="item.deviceId"
+                :label="item.label"
+              )
+            p.device-warn 请选择正确胡麦克风选项，选择禁用会导致麦克风不可用
+        section.item-section
+          .audio-content
+            p.audio-tips 对着麦克风从1数到10，您能听到自己的声音并且看到黄条滚动吗？
+            .audio-volume-list
+              .audio-volume-item(v-for="item in volumeItems" :key="item" :class="{active: item <= audioVolume}")
+            #audioTestDom
+        section.item-section
+          .section-tips
+            p 温馨提示：如果您无法看到视频，请按以下方式排查问题
+            p 1、若杀毒软件（如：360卫士，百度卫士）弹出提示信息，请选择允许；
+            p 2、确认摄像头已连接并开启；
+            p 3、如果摄像头仍然没有画面，换一个插口重新插入摄像头；
+            p 4、请选择正确摄像头选项，选择禁用会导致摄像头不可用；
+            p 5、确认摄像头没有被其他程序占用；
+            p 6、重启电脑。
+        .device-ctrl
+          .device-btn(@click="confirm") 确定
 </template>
 
 <script>
+const volumeItems = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]
+
 export default {
   props: {
     room: Object,
@@ -261,13 +312,33 @@ export default {
       mirror: false,
       audiooutputId: '',
       volume: 100,
-      step: 1
+      audioinputId: '',
+      volumeItems,
+      audioVolume: 0,
+      step: 3
     }
   },
   mounted () {
     this.videoinputId = this.devices.useDevices.videoinput
+    this.audiooutputId = this.devices.useDevices.audiooutput
+    this.audioinputId = this.devices.useDevices.audioinput
     this.mirror = localStorage.getItem('isVideoMirror') ? JSON.parse(localStorage.getItem('isVideoMirror')) : false
     this.videoChanged()
+  },
+  beforeDestroy () {
+    TK.DeviceMgr.stopMicrophoneTest()
+  },
+  watch: {
+    step (val) {
+      if (val === 1) {
+        this.videoChanged()
+      }
+      if (val === 3) {
+        this.startMicrophoneTest()
+      } else {
+        TK.DeviceMgr.stopMicrophoneTest()
+      }
+    }
   },
   methods: {
     videoChanged () {
@@ -296,18 +367,32 @@ export default {
       this.$refs.audioRef.play()
     },
     voiceChangeed () {
-      TK.DeviceMgr.associateElementsToSpeaker(this.$refs.audioRef, this.deviceId, (res) => {
+      TK.DeviceMgr.associateElementsToSpeaker(this.$refs.audioRef, this.videoinputId, (res) => {
         console.log('sucess: ', res)
       })
     },
     volumeChanged () {
       this.$refs.audioRef.volume = this.volume / 100
     },
+    // 切换麦克风
+    changeAduio () {
+      this.startMicrophoneTest()
+    },
+    // 开始麦克风检测
+    startMicrophoneTest () {
+      TK.DeviceMgr.startMicrophoneTest(this.audioinputId, 'audioTestDom', res => {
+        this.audioVolume = Math.round(res/10)
+      }, err => {
+        console.log(2222, err)
+      })
+    },
     confirm () {
       this.room.setLocalVideoMirror(this.mirror)
       localStorage.setItem('isVideoMirror', this.mirror)
       TK.DeviceMgr.setDevices({
-        videoinput: this.videoinputId
+        videoinput: this.videoinputId,
+        audioinput: this.audioinputId,
+        audiooutput: this.audiooutputId
       })
       this.$emit('done')
       this.$emit('close')
