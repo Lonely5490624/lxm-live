@@ -44,7 +44,7 @@
     .item-icon
       i.icon-hold_datiqi
     .item-text 答题器
-  .tool-item
+  .tool-item(@click="$emit('showTools', 'zhuanpan')")
     .item-icon
       i.icon-hold_zhuanpan
     .item-text 转盘

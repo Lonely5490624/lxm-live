@@ -200,6 +200,8 @@
         JishiqiStu(v-show="role === 2 && toolsShow.jishiqiStu" :room="room")
         Qiangdaqi(v-if="role === 0 && toolsShow.qiangdaqi" :room="room" @onClose="closeTools")
         QiangdaqiStu(v-if="role === 2 && toolsShow.qiangdaqiStu" :room="room")
+        Zhuanpan(v-if="role === 0 && toolsShow.zhuanpan" :room="room" @onClose="closeTools")
+        ZhuanpanStu(v-if="role === 2 && toolsShow.zhuanpanStu" :room="room")
       #stu-videos.class-stu-videos(ref="stuVideoList")
         template(v-for="item in students")
           .stu-video(:key="item.id" :id="`video-${item.id}`" v-if="item.publishstate")
@@ -245,6 +247,8 @@ import Jishiqi from '@/components/tools/Jishiqi'
 import JishiqiStu from '@/components/tools/JishiqiStu'
 import Qiangdaqi from '@/components/tools/Qiangdaqi'
 import QiangdaqiStu from '@/components/tools/QiangdaqiStu'
+import Zhuanpan from '@/components/tools/Zhuanpan'
+import ZhuanpanStu from '@/components/tools/ZhuanpanStu'
 
 export default {
   components: {
@@ -256,7 +260,9 @@ export default {
     Jishiqi,
     JishiqiStu,
     Qiangdaqi,
-    QiangdaqiStu
+    QiangdaqiStu,
+    Zhuanpan,
+    ZhuanpanStu
   },
   data () {
     return {
@@ -276,7 +282,9 @@ export default {
         jishiqi: false,
         jishiqiStu: false,
         qiangdaqi: false,
-        qiangdaqiStu: false
+        qiangdaqiStu: false,
+        zhuanpan: false,
+        zhuanpanStu: false
       },
       devices: null
     }
@@ -338,6 +346,14 @@ export default {
       // 抢答器结束事件
       if (e.message?.name === 'QiangdaqiEnded') {
         this.toolsShow.qiangdaqiStu = false
+      }
+      // 转盘事件
+      if (e.message?.name === 'Zhuanpan') {
+        this.toolsShow.zhuanpanStu = true
+      }
+      // 转盘结束事件
+      if (e.message?.name === 'ZhuanpanEnd') {
+        this.toolsShow.zhuanpanStu = false
       }
     })
     // 监听下课事件
@@ -638,6 +654,13 @@ export default {
         case 'qiangdaqi':
           this.toolsShow.qiangdaqi = true
           break
+        case 'zhuanpan':
+          this.toolsShow.zhuanpan = true
+          this.room.pubMsg({
+            name: 'Zhuanpan',
+            id: `Zhuanpan_${new Date().getTime()}`
+          })
+          break
         default:
           break
       }
@@ -654,6 +677,9 @@ export default {
           break
         case 'qiangdaqi':
           this.toolsShow.qiangdaqi = false
+          break
+        case 'zhuanpan':
+          this.toolsShow.zhuanpan = false
           break
         default:
           break;
