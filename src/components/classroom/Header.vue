@@ -76,6 +76,7 @@
   Courseware(v-if="openType === 'files'" rel="files")
   Tools(v-if="openType === 'tools'" rel="tools" @showTools="data => {$emit('showTools', data);openType = false}")
   Control(v-if="openType === 'ctrls'" rel="ctrls" :students="students" :room="room")
+  Setting(v-if="openType === 'settings'" rel="settings" @close="openType = ''" :devices="devices" :room="room" @done="$emit('settinDone')")
 </template>
 
 <script>
@@ -84,6 +85,7 @@ import StuList from '@/components/classroom/StuList'
 import Courseware from '@/components/classroom/Courseware'
 import Tools from '@/components/classroom/Tools'
 import Control from '@/components/classroom/Control'
+import Setting from '@/components/classroom/Setting'
 
 export default {
   components: {
@@ -91,7 +93,8 @@ export default {
     StuList,
     Courseware,
     Tools,
-    Control
+    Control,
+    Setting
   },
   props: {
     role: Number,
@@ -99,7 +102,8 @@ export default {
     networkStatus: Object,
     classBegin: Boolean,
     files: Array,
-    students: Array
+    students: Array,
+    devices: Object
   },
   data () {
     return {
@@ -109,6 +113,7 @@ export default {
   mounted () {
     document.addEventListener('click', e => {
       const type = this.openType
+      if (type === 'settings') return
       if (!document.querySelectorAll(`[rel="${type}"]`)[1]?.contains(e.target)) {
         this.openType = ''
       }

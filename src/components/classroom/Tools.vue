@@ -5,7 +5,6 @@
   right 180px
   width 385px
   height 232px
-  background-color rgba(30,148,100,.9)
   padding 15px 25px 0 15px
   z-index 99
   border 2px solid $roomDeepGreen

@@ -189,7 +189,7 @@
 
 <template lang="pug">
 .classroom
-  Header(:role="role" :room="room" :classBegin.sync="classBegin" :networkStatus="networkStatus" :files="files" @showTools="showTools" :students="students")
+  Header(:role="role" :room="room" :classBegin.sync="classBegin" :networkStatus="networkStatus" :files="files" @showTools="showTools" :students="students" :devices="devices" @settinDone="getDevices")
   .classroom-content
     .class-board
       .class-whiteboard
@@ -277,7 +277,8 @@ export default {
         jishiqiStu: false,
         qiangdaqi: false,
         qiangdaqiStu: false
-      }
+      },
+      devices: null
     }
   },
   computed: {
@@ -291,6 +292,7 @@ export default {
   },
   mounted () {
     this.initRoom()
+    this.getDevices()
     // 房间连接事件
     this.room.addEventListener(TK.EVENT_TYPE.roomConnected, (e) => {
       console.log('房间连接成功', e)
@@ -497,6 +499,8 @@ export default {
     },
     // 播放老师视频
     playTeacherVideo () {
+      const mirror = localStorage.getItem('isVideoMirror')
+      this.room.setLocalVideoMirror(JSON.parse(mirror))
       this.room.playVideo(this.teacher?.id || '', 'teacher-video', {}, err => {
         console.log('播放失败', err)
       })
@@ -654,6 +658,12 @@ export default {
         default:
           break;
       }
+    },
+    // 获取所有设备列表
+    getDevices () {
+      TK.DeviceMgr.getDevices(res => {
+        this.devices = res
+      })
     }
   }
 }
