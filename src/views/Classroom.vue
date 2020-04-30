@@ -492,6 +492,10 @@ export default {
         }
       }
     })
+    // 监听设备变化
+    TK.DeviceMgr.addDeviceChangeListener(() => {
+      this.getDevices()
+    })
   },
   methods: {
     // 初始化房间

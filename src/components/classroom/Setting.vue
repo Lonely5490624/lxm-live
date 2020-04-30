@@ -229,7 +229,7 @@
             p 1、若杀毒软件（如：360卫士，百度卫士）弹出提示信息，请选择允许；
             p 2、确认摄像头已连接并开启；
             p 3、如果摄像头仍然没有画面，换一个插口重新插入摄像头；
-            p 4、请选择正确摄像头选项，选择禁用会导致摄像头不可用；
+            p 4、请选择正确的摄像头选项，选择禁用会导致摄像头不可用；
             p 5、确认摄像头没有被其他程序占用；
             p 6、重启电脑。
         .device-ctrl
@@ -258,12 +258,12 @@
             audio(ref="audioRef" src="https://doccdn.talk-cloud.net/static/h5_new_3.3.3.7/music/detectionDevice_default.wav" display="none")
         section.item-section
           .section-tips
-            p 温馨提示：如果您无法看到视频，请按以下方式排查问题
+            p 温馨提示：如果您无法听到声音，请按以下方式排查问题
             p 1、若杀毒软件（如：360卫士，百度卫士）弹出提示信息，请选择允许；
-            p 2、确认摄像头已连接并开启；
-            p 3、如果摄像头仍然没有画面，换一个插口重新插入摄像头；
-            p 4、请选择正确摄像头选项，选择禁用会导致摄像头不可用；
-            p 5、确认摄像头没有被其他程序占用；
+            p 2、确认耳机、扬声器已连接并开启；
+            p 3、确认耳机、扬声器音量已经调整到最大；
+            p 4、请选择正确的耳机选项，选择禁用会导致耳机、扬声器不可用；
+            p 5、如果耳机、扬声器仍然没有声音，换一个插口重新插入耳机、扬声器；
             p 6、重启电脑。
         .device-ctrl
           .device-btn(@click="confirm") 确定
@@ -287,12 +287,12 @@
             #audioTestDom
         section.item-section
           .section-tips
-            p 温馨提示：如果您无法看到视频，请按以下方式排查问题
+            p 温馨提示：如果您无法看到黄色滚动条，请按以下方式排查
             p 1、若杀毒软件（如：360卫士，百度卫士）弹出提示信息，请选择允许；
-            p 2、确认摄像头已连接并开启；
-            p 3、如果摄像头仍然没有画面，换一个插口重新插入摄像头；
-            p 4、请选择正确摄像头选项，选择禁用会导致摄像头不可用；
-            p 5、确认摄像头没有被其他程序占用；
+            p 2、确认麦克风已连接并开启；
+            p 3、确认麦克风已插入电脑的麦克风插孔中，并且麦克风声音已调整到最大；
+            p 4、请选择正确的麦克风选项，选择禁用会导致麦克风不可用；
+            p 5、如果麦克风仍然没有声音，换一个插口重新插入麦克风；
             p 6、重启电脑。
         .device-ctrl
           .device-btn(@click="confirm") 确定
@@ -315,20 +315,31 @@ export default {
       audioinputId: '',
       volumeItems,
       audioVolume: 0,
-      step: 3
+      step: 1
     }
+  },
+  created () {
+    this.mirror = localStorage.getItem('isVideoMirror') ? JSON.parse(localStorage.getItem('isVideoMirror')) : false
   },
   mounted () {
     this.videoinputId = this.devices.useDevices.videoinput
     this.audiooutputId = this.devices.useDevices.audiooutput
     this.audioinputId = this.devices.useDevices.audioinput
-    this.mirror = localStorage.getItem('isVideoMirror') ? JSON.parse(localStorage.getItem('isVideoMirror')) : false
     this.videoChanged()
   },
   beforeDestroy () {
     TK.DeviceMgr.stopMicrophoneTest()
   },
   watch: {
+    devices (val) {
+      this.videoinputId = val.useDevices.videoinput
+      this.audiooutputId = val.useDevices.audiooutput
+      this.audioinputId = val.useDevices.audioinput
+      this.videoChanged()
+      if (this.step === 3) {
+        this.startMicrophoneTest()
+      }
+    },
     step (val) {
       if (val === 1) {
         this.videoChanged()
@@ -341,6 +352,7 @@ export default {
     }
   },
   methods: {
+    // 切换摄像头
     videoChanged () {
       if (this.$refs.videoRef?.srcObject) {
         this.closeVideo()
@@ -356,21 +368,25 @@ export default {
         video.src = window.URL.createObjectURL(stream);
       });
     },
+    // 关闭摄像头的流
     closeVideo () {
       var stream = this.$refs.videoRef?.srcObject
       stream.getTracks().forEach(element => {
         element.stop()
       });
     },
+    // 播放音频
     audioPlay () {
       this.$refs.audioRef.load()
       this.$refs.audioRef.play()
     },
+    // 切换耳机
     voiceChangeed () {
       TK.DeviceMgr.associateElementsToSpeaker(this.$refs.audioRef, this.videoinputId, (res) => {
         console.log('sucess: ', res)
       })
     },
+    // 修改声音
     volumeChanged () {
       this.$refs.audioRef.volume = this.volume / 100
     },
@@ -381,11 +397,12 @@ export default {
     // 开始麦克风检测
     startMicrophoneTest () {
       TK.DeviceMgr.startMicrophoneTest(this.audioinputId, 'audioTestDom', res => {
-        this.audioVolume = Math.round(res/10)
+        this.audioVolume = Math.round(res/5)
       }, err => {
         console.log(2222, err)
       })
     },
+    // 保存修改
     confirm () {
       this.room.setLocalVideoMirror(this.mirror)
       localStorage.setItem('isVideoMirror', this.mirror)
