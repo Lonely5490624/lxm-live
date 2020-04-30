@@ -191,6 +191,8 @@
   line-height 28px
 .el-select .el-input .el-select__caret
   font-size 14px
+.el-select-dropdown__empty
+  font-size 14px
 </style>
 
 <template lang="pug">

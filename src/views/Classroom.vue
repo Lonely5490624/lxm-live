@@ -515,7 +515,9 @@ export default {
         serial: this.$route.params.serial,
         password: this.role === 0 ? '7580' : '2824'
       })
-      this.playTeacherVideo()
+      if (this.role === 0) {
+        this.playTeacherVideo()
+      }
     },
     // 播放老师视频
     playTeacherVideo () {
