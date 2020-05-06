@@ -19,6 +19,58 @@
         height 100%
         position relative
         background-color #ccc
+        .class-file-show
+          width 100%
+          height 100%
+          .file-png
+            width 100%
+            height 100%
+            background-size contain
+            background-position center center
+            background-repeat no-repeat
+        .class-file-control
+          position absolute
+          bottom 10px
+          left 50%
+          transform translateX(-50%)
+          background-color rgba(0,0,0,.5)
+          height 50px
+          border-radius 25px
+          display flex
+          align-items center
+          color #ffffff
+          padding 0 30px
+          .page-btn
+            font-size 20px
+            font-family 'icomoon'
+            cursor pointer
+            width 46px
+            text-align center
+            &.prev-page
+              &:before
+                content "\ee027"
+            &.next-page
+              &:before
+                content "\ee028"
+            &.disabled
+              opacity .5
+          .page-jump
+            display flex
+            font-size 14px
+            align-items center
+            .page-cur
+              width 48px
+              height 24px
+              border 1px solid #ffffff
+              border-radius 14px
+              line-height 24px
+              background-color transparent
+              color #ffffff
+              text-align center
+              outline none
+              font-size 14px
+            .page-sep
+              margin 0 8px
       .class-stu-videos
         display flex
         justify-content center
@@ -189,7 +241,7 @@
 
 <template lang="pug">
 .classroom
-  Header(:role="role" :room="room" :classBegin.sync="classBegin" :networkStatus="networkStatus" :files="files" @showTools="showTools" :students="students" :devices="devices" @settinDone="getDevices")
+  Header(:role="role" :room="room" :classBegin.sync="classBegin" :networkStatus="networkStatus" :files="files" @showTools="showTools" :students="students" :devices="devices" @settinDone="getDevices" :currentFile="currentFile")
   .classroom-content
     .class-board
       .class-whiteboard
@@ -202,6 +254,15 @@
         QiangdaqiStu(v-if="role === 2 && toolsShow.qiangdaqiStu" :room="room")
         Zhuanpan(v-if="role === 0 && toolsShow.zhuanpan" :room="room" @onClose="closeTools")
         ZhuanpanStu(v-if="role === 2 && toolsShow.zhuanpanStu" :room="room")
+        #classFileBox.class-file-show
+          .file-png(v-if="currentFile && ['png', 'txt', 'pdf'].includes(currentFile.filetype)" :style="`background-image: url('https://doccdn.talk-cloud.net${currentFile.swfpath.replace(/\.(png|jpg)$/, '-'+currpage+'.$1')}')`")
+        .class-file-control
+          .page-btn.prev-page(@click="changePage('prev')" :class="{disabled: currpage === 1}")
+          .page-jump
+            input.page-cur(:value="currpage" @blur="jumpPage" @keyup.enter="jumpPage")
+            .page-sep /
+            .page-all {{currentFile && currentFile.pagenum || 1}}
+          .page-btn.next-page(@click="changePage('next')" :class="{disabled: !currentFile || currpage === currentFile.pagenum}")
       #stu-videos.class-stu-videos(ref="stuVideoList")
         template(v-for="item in students")
           .stu-video(:key="item.id" :id="`video-${item.id}`" v-if="item.publishstate")
@@ -227,7 +288,7 @@
           i.middle-btn.icon-btn_close-camera(@click="openVideo" v-else)
           i.middle-btn.icon-btn_fuwei
         .video-bottom
-          .bottom-name teacher
+          .bottom-name {{teacher && teacher.nickname}}
           .bottom-voice(v-if="teacher && (teacher.publishstate === 1 || teacher.publishstate === 3)")
             i.icon-btn_audio
             .voice-volume(:style="{width: `${teacherVolume / 10 * .4}rem`}")
@@ -286,7 +347,9 @@ export default {
         zhuanpan: false,
         zhuanpanStu: false
       },
-      devices: null
+      devices: null,
+      currentFile: null,
+      currpage: 1
     }
   },
   computed: {
@@ -354,6 +417,12 @@ export default {
       // 转盘结束事件
       if (e.message?.name === 'ZhuanpanEnd') {
         this.toolsShow.zhuanpanStu = false
+      }
+      // 共享课件事件
+      if (e.message?.name === 'ShowPage') {
+        console.log('共享文件事件', e.message)
+        this.currentFile = e.message.data.filedata
+        this.currpage = e.message.data.filedata.currpage || 1
       }
     })
     // 监听下课事件
@@ -506,6 +575,8 @@ export default {
           this.joinRoom()
         }, err => {
           console.log('初始化失败', err)
+        }, true, {
+          isGetFileList: true
         })
       }
     },
@@ -695,6 +766,50 @@ export default {
     getDevices () {
       TK.DeviceMgr.getDevices(res => {
         this.devices = res
+      })
+    },
+    // 文件翻页
+    changePage (type) {
+      if (type === 'prev') {
+        if (this.currpage === 1) {
+          return
+        } else {
+          this.currpage --
+        }
+      } else if (type === 'next') {
+        if (this.currpage === this.currentFile.pagenum) {
+          return
+        } else {
+          this.currpage ++
+        }
+      }
+      const filedata = this.currentFile
+      filedata.currpage = this.currpage
+      this.room.pubMsg({
+        name: 'ShowPage',
+        id: 'DocumentFilePage_ShowPage',
+        data: JSON.stringify({
+          filedata
+        })
+      })
+    },
+    // 跳转翻页
+    jumpPage (e) {
+      if (e.target.value <= 1) {
+        this.currpage = 1
+      } else if (e.target.value >= this.currentFile.pagenum) {
+        this.currpage = this.currentFile.pagenum
+      } else {
+        this.currpage = e.target.value
+      }
+      const filedata = this.currentFile
+      filedata.currpage = this.currpage
+      this.room.pubMsg({
+        name: 'ShowPage',
+        id: 'DocumentFilePage_ShowPage',
+        data: JSON.stringify({
+          filedata
+        })
       })
     }
   }
