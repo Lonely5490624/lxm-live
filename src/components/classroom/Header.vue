@@ -73,8 +73,7 @@
       LxmBtn.class-btn(v-if="!classBegin && role === 0" @onClick="beginClass") 上课
       LxmBtn.class-btn(v-if="classBegin && (role === 0 || role === 1)" @onClick="endClass") 下课
   StuList(v-if="openType === 'users'" :room="room" rel="users")
-  keep-alive
-    Courseware(v-if="openType === 'files'" :room="room" :currentFile="currentFile" rel="files")
+  Courseware(v-if="openType === 'files'" :room="room" :currentFile="currentFile" rel="files")
   Tools(v-if="openType === 'tools'" rel="tools" @showTools="data => {$emit('showTools', data);openType = false}")
   Control(v-if="openType === 'ctrls'" rel="ctrls" :students="students" :room="room")
   Setting(v-if="openType === 'settings'" rel="settings" @close="openType = ''" :devices="devices" :room="room" @done="$emit('settinDone')")

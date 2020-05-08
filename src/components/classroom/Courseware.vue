@@ -165,13 +165,13 @@
         span.text 教室文件
         span.arrow.icon-right
       .file-list(:class="{hide: !classFileOpen}")
-        .file-item
+        .file-item(@click="shareWhiteBoard")
           .title
             img.title-img(src="../../assets/images/whiteboard.png")
             .title-text 白板
           .item-ctrl
             span.ctrl-show(:class="currentFile ? 'icon-close_eye' : 'icon-open_eye'")
-        .file-item(v-for="item in classFile" :key="item.fileid" @click="shareMedia(item)")
+        .file-item(v-for="item in classFile" :key="item.fileid" @click="shareCourse(item)")
           .title
             img.title-img(src="../../assets/images/icon_file.png")
             .title-text {{item.filename}}
@@ -181,7 +181,7 @@
         span.text 公共文件
         span.arrow.icon-right
       .file-list(:class="{hide: !publicFileOpen}")
-        .file-item(v-for="item in publicFile" :key="item.fileid" @click="shareMedia(item)")
+        .file-item(v-for="item in publicFile" :key="item.fileid" @click="shareCourse(item)")
           .title
             img.title-img(src="../../assets/images/icon_file.png")
             .title-text {{item.filename}}
@@ -213,13 +213,7 @@
         span.text 教室文件
         span.arrow.icon-right
       .file-list(:class="{hide: !classFileOpen}")
-        .file-item
-          .title
-            img.title-img(src="../../assets/images/whiteboard.png")
-            .title-text 白板
-          .item-ctrl
-            span.ctrl-show(:class="currentFile ? 'icon-close_eye' : 'icon-open_eye'")
-        .file-item(v-for="item in classFile" :key="item.fileid" @click="shareMedia(item)")
+        .file-item(v-for="item in classMediaFile" :key="item.fileid" @click="shareMedia(item)")
           .title
             img.title-img(src="../../assets/images/icon_file.png")
             .title-text {{item.filename}}
@@ -229,7 +223,7 @@
         span.text 公共文件
         span.arrow.icon-right
       .file-list(:class="{hide: !publicFileOpen}")
-        .file-item(v-for="item in publicFile" :key="item.fileid" @click="shareMedia(item)")
+        .file-item(v-for="item in publicMediaFile" :key="item.fileid" @click="shareMedia(item)")
           .title
             img.title-img(src="../../assets/images/icon_file.png")
             .title-text {{item.filename}}
@@ -257,10 +251,16 @@ export default {
   },
   computed: {
     classFile () {
-      return this.fileList.filter(item => item.filecategory === 0)
+      return this.fileList.filter(item => item.filecategory === 0 && item.filetype !== 'mp4' && item.filetype !== 'mp3')
     },
     publicFile () {
-      return this.fileList.filter(item => item.filecategory === 1)
+      return this.fileList.filter(item => item.filecategory === 1 && item.filetype !== 'mp4' && item.filetype !== 'mp3')
+    },
+    classMediaFile () {
+      return this.fileList.filter(item => item.filecategory === 0 && (item.filetype === 'mp4' || item.filetype === 'mp3'))
+    },
+    publicMediaFile () {
+      return this.fileList.filter(item => item.filecategory === 1 && (item.filetype === 'mp4' || item.filetype === 'mp3'))
     }
   },
   beforeMount () {
@@ -292,14 +292,40 @@ export default {
     getFileList () {
       this.fileList = this.room.getFileList()
     },
+    // 共享白板
+    shareWhiteBoard () {
+      this.room.pubMsg({
+        name: 'ShowPage',
+        id: 'DocumentFilePage_ShowPage',
+        save: true,
+        data: JSON.stringify({
+          filedata: {}
+        })
+      })
+    },
     // 共享文件
-    shareMedia (file) {
+    shareCourse (file) {
       this.room.pubMsg({
         name: 'ShowPage',
         id: 'DocumentFilePage_ShowPage',
         save: true,
         data: JSON.stringify({
           filedata: file
+        })
+      })
+    },
+    // 共享媒体文件
+    shareMedia (media) {
+      console.log('共享媒体文件', media)
+      const url = `https://doccdn.talk-cloud.net${media.swfpath.replace(/\.(webm)$/, '-1.$1')}`
+      this.room.startShareMedia(url, media.filetype === 'mp4', err => {
+        console.log('共享媒体文件失败', err)
+      })
+      this.room.pubMsg({
+        name: 'PubAudio',
+        id: 'PubAudio',
+        data: JSON.stringify({
+          url
         })
       })
     },

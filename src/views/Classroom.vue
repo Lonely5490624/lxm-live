@@ -16,18 +16,36 @@
       flex-direction column
       .class-whiteboard
         // flex-grow 1
-        height 100%
+        height calc(100% - 1.5rem)
         position relative
         background-color #ccc
+        .lxm-whiteboard
+          position absolute
+          top 0
+          bottom 0
+          left 0
+          right 0
+          z-index 1
         .class-file-show
           width 100%
           height 100%
+          z-index 2
+          background-color #eee
+          position absolute
           .file-png
             width 100%
             height 100%
             background-size contain
             background-position center center
             background-repeat no-repeat
+        .class-media-box
+          position absolute
+          top 0
+          // bottom 0
+          left 0
+          // right 0
+          z-index 9
+          // pointer-events none
         .class-file-control
           position absolute
           bottom 10px
@@ -40,6 +58,7 @@
           align-items center
           color #ffffff
           padding 0 30px
+          z-index 3
           .page-btn
             font-size 20px
             font-family 'icomoon'
@@ -245,7 +264,8 @@
   .classroom-content
     .class-board
       .class-whiteboard
-        //- WhiteBoard
+        //- #lxmWhiteBoard.lxm-whiteboard
+        WhiteBoard(:room="room")
         Datiqi(v-if="role === 0 && toolsShow.datiqi" :room="room" @onClose="closeTools")
         DatiqiStu(v-if="role === 2 && toolsShow.datiqiStu" :room="room" :answerList="answerList" :teacher="teacher")
         Jishiqi(v-if="role === 0 && toolsShow.jishiqi" :room="room" @onClose="closeTools")
@@ -254,8 +274,9 @@
         QiangdaqiStu(v-if="role === 2 && toolsShow.qiangdaqiStu" :room="room")
         Zhuanpan(v-if="role === 0 && toolsShow.zhuanpan" :room="room" @onClose="closeTools")
         ZhuanpanStu(v-if="role === 2 && toolsShow.zhuanpanStu" :room="room")
-        #classFileBox.class-file-show
+        .class-file-show(v-if="Object.keys(currentFile).length")
           .file-png(v-if="currentFile && ['png', 'txt', 'pdf'].includes(currentFile.filetype)" :style="`background-image: url('https://doccdn.talk-cloud.net${currentFile.swfpath.replace(/\.(png|jpg)$/, '-'+currpage+'.$1')}')`")
+        #classMediaBox.class-media-box
         .class-file-control
           .page-btn.prev-page(@click="changePage('prev')" :class="{disabled: currpage === 1}")
           .page-jump
@@ -348,7 +369,7 @@ export default {
         zhuanpanStu: false
       },
       devices: null,
-      currentFile: null,
+      currentFile: {},
       currpage: 1
     }
   },
@@ -421,8 +442,89 @@ export default {
       // 共享课件事件
       if (e.message?.name === 'ShowPage') {
         console.log('共享文件事件', e.message)
-        this.currentFile = e.message.data.filedata
-        this.currpage = e.message.data.filedata.currpage || 1
+        this.currentFile = e.message.data.filedata || null
+        this.currpage = e.message.data?.filedata?.currpage || 1
+      }
+      // 共享音频文件
+      if (e.message?.name === 'PubAudio') {
+        let dom
+        let source
+        if (document.getElementById('PubAudio')) {
+          dom = document.getElementById('PubAudio')
+          source = dom.querySelector('source')
+        } else {
+          dom = document.createElement('video')
+          source = document.createElement('source')
+          if (this.role !== 0) {
+            dom.style.pointerEvents = 'none'
+          }
+          dom.setAttribute('controls', '')
+          dom.setAttribute('autoplay', '')
+          dom.setAttribute('name', 'media')
+          dom.id = e.message.name
+          source.setAttribute('src', e.message?.data?.url)
+          source.setAttribute('type', 'video/webm')
+          document.getElementById('classMediaBox').appendChild(dom)
+          dom.appendChild(source)
+        }
+        dom.addEventListener('pause', () => {
+          if (this.role === 0) {
+            this.room.pubMsg({
+              name: 'PauseAudio',
+              id: 'PauseAudio'
+            })
+          }
+        })
+        dom.addEventListener('play', () => {
+          if (this.role === 0) {
+            this.room.pubMsg({
+              name: 'PlayAudio',
+              id: 'PlayAudio'
+            })
+          }
+        })
+        dom.addEventListener('ended', () => {
+          if (this.role === 0) {
+            this.room.pubMsg({
+              name: 'EndedAudio',
+              id: 'EndedAudio'
+            })
+          }
+        })
+        dom.addEventListener('seeked', () => {
+          if (this.role === 0) {
+            this.room.pubMsg({
+              name: 'SeekAudio',
+              id: 'SeekAudio',
+              toID: TK.MSG_TO_ALLEXCEPTSENDER,
+              data: JSON.stringify({
+                currentTime: dom.currentTime
+              })
+            })
+          }
+        })
+      }
+      // 播放音频
+      if (e.message.name === 'PauseAudio') {
+        document.getElementById('PubAudio').pause()
+        this.room.pauseShareMedia(true)
+      }
+      // 播放音频
+      if (e.message.name === 'PlayAudio') {
+        document.getElementById('PubAudio').play()
+        this.room.pauseShareMedia(false)
+      }
+      // 播放音频
+      if (e.message.name === 'EndedAudio') {
+        if (document.getElementById('PubAudio')) {
+          document.getElementById('classMediaBox').removeChild(document.getElementById('PubAudio'))
+        }
+      }
+      // 拖拽音频
+      if (e.message.name === 'SeekAudio') {
+        if (document.getElementById('PubAudio')) {
+          document.getElementById('PubAudio').currentTime = e.message?.data?.currentTime
+        }
       }
     })
     // 监听下课事件
@@ -565,6 +667,35 @@ export default {
     TK.DeviceMgr.addDeviceChangeListener(() => {
       this.getDevices()
     })
+    // 监听媒体共享
+    this.room.addEventListener(TK.EVENT_TYPE.roomUserMediaStateChanged, e => {
+      console.log('监听媒体共享', e)
+      if (e.message.type === 'media') {
+        if (e.message.published) {
+          // if (e.message.attributes.video) {
+          //   this.room.playRemoteMedia(e.message.userId, 'classMediaBox', {
+          //     loader: true
+          //   }, err => {
+          //     console.log('播放共享媒体文件失败', err)
+          //   })
+          // }
+        } else {
+          this.room.unplayRemoteMedia(e.message.userId, err => {
+            console.log('停止播放共享媒体文件失败', err)
+          })
+          if (document.getElementById('PubAudio')) {
+            document.getElementById('classMediaBox').removeChild(document.getElementById('PubAudio'))
+          }
+        }
+      }
+    })
+    // 监听媒体共享的进度
+    // this.room.addEventListener(TK.EVENT_TYPE.roomUserMediaAttributesUpdate, e => {
+    //   // console.log('监听媒体共享进度', e)
+    //   if (e.message.type === 'media') {
+    //     console.log('媒体进度', e.message.updateAttributes.position)
+    //   }
+    // })
   },
   methods: {
     // 初始化房间
@@ -589,6 +720,17 @@ export default {
       if (this.role === 0) {
         this.playTeacherVideo()
       }
+      // 初始化白板
+      // const wb = new window.TKWhiteBoardManager(this.room, null, true)
+      // window.wb = wb
+      // wb.createMainWhiteboard('lxmWhiteBoard', {
+      //   primaryColor: '#f00'
+      // }, (e, t) => {
+      //   console.log('白板动作', e, t)
+      // })
+      // wb.registerRoomDelegate(this.room, e => {
+      //   console.log('委托', e)
+      // })
     },
     // 播放老师视频
     playTeacherVideo () {
