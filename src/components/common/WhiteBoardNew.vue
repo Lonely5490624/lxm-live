@@ -167,7 +167,6 @@ export default {
       const parent = this.canvas.parentNode.querySelector('iframe')
       const pW = parent.clientWidth
       const pH = parent.clientHeight
-      console.log(33333, pW, pH)
       if (pW * .8 > pH) {
         this.width = pH / .8
         this.height = pH
