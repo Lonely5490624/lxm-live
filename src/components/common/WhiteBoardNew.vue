@@ -46,12 +46,17 @@
         i.icon-kongxinjuxing
       .tool-item(@click="tool = 'eraser'" :class="{active: tool === 'eraser'}")
         i.icon-xiangpi
-      .tool-item(@click="undo" :class="{disabled: !allPath.length}")
+      .tool-item(v-if="allPath.length || isClear" @click="undo")
         i.icon-back
-      .tool-item(@click="redo" :class="{disabled: !undoArray.length && !isClear}")
+      .tool-item.disabled(v-else)
+        i.icon-back
+      .tool-item(v-if="undoArray.length" @click="redo")
         i.icon-before
-      .tool-item(@click="clear")
-        i.icon-delete
+      .tool-item.disabled(v-else)
+        i.icon-before
+      //- @todo 清屏（由于清屏后回滚有问题）
+      //- .tool-item(@click="clear")
+      //-   i.icon-delete
     canvas#lxmWhiteBoard(ref="canvasRef" :width="width" :height="height" @mousedown="canvasMouseDown" @mousemove="canvasMouseMove" @mouseup="canvasMouseUp")
     .overflow(v-if="this.role === 2")
 </template>
@@ -252,6 +257,7 @@ export default {
       if (this.allPath[this.allPath.length - 1]['path'] && !this.allPath[this.allPath.length - 1]['path'].length) {
         this.allPath.splice(this.allPath.length - 1)
       }
+      this.isClear = false
       this.undoArray = []
       this.sendCanvas()
     },
