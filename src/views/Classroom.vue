@@ -265,7 +265,7 @@
     .class-board
       .class-whiteboard
         //- #lxmWhiteBoard.lxm-whiteboard
-        WhiteBoard(:room="room")
+        WhiteBoard(:room="room" :role="role")
         Datiqi(v-if="role === 0 && toolsShow.datiqi" :room="room" @onClose="closeTools")
         DatiqiStu(v-if="role === 2 && toolsShow.datiqiStu" :room="room" :answerList="answerList" :teacher="teacher")
         Jishiqi(v-if="role === 0 && toolsShow.jishiqi" :room="room" @onClose="closeTools")
@@ -277,13 +277,20 @@
         .class-file-show(v-if="Object.keys(currentFile).length")
           .file-png(v-if="currentFile && ['png', 'txt', 'pdf'].includes(currentFile.filetype)" :style="`background-image: url('https://doccdn.talk-cloud.net${currentFile.swfpath.replace(/\.(png|jpg)$/, '-'+currpage+'.$1')}')`")
         #classMediaBox.class-media-box
-        .class-file-control
+        .class-file-control(v-if="role === 0")
           .page-btn.prev-page(@click="changePage('prev')" :class="{disabled: currpage === 1}")
           .page-jump
             input.page-cur(:value="currpage" @blur="jumpPage" @keyup.enter="jumpPage")
             .page-sep /
             .page-all {{currentFile && currentFile.pagenum || 1}}
           .page-btn.next-page(@click="changePage('next')" :class="{disabled: !currentFile || currpage === currentFile.pagenum}")
+        .class-file-control(v-else)
+          .page-btn.prev-page(:class="{disabled: currpage === 1}")
+          .page-jump
+            input.page-cur(:value="currpage" disabled)
+            .page-sep /
+            .page-all {{currentFile && currentFile.pagenum || 1}}
+          .page-btn.next-page(:class="{disabled: !currentFile || currpage === currentFile.pagenum}")
       #stu-videos.class-stu-videos(ref="stuVideoList")
         template(v-for="item in students")
           .stu-video(:key="item.id" :id="`video-${item.id}`" v-if="item.publishstate")
@@ -321,7 +328,7 @@
 
 <script>
 import Header from '@/components/classroom/Header'
-import WhiteBoard from '@/components/common/WhiteBoard'
+import WhiteBoard from '@/components/common/WhiteBoardNew'
 import ChartRoom from '@/components/classroom/ChartRoom'
 import Datiqi from '@/components/tools/Datiqi'
 import DatiqiStu from '@/components/tools/DatiqiStu'
