@@ -32,6 +32,16 @@
     right 0
     bottom 0
 </style>
+<style lang="stylus">
+.iframe-class
+  background-color transparent
+  position absolute
+  top 0
+  left 0
+  width 100%
+  height 100%
+  pointer-events none
+</style>
 
 <template lang="pug">
   .white-board(ref="whiteBoardRef")
@@ -104,19 +114,30 @@ export default {
   },
   mounted () {
     this.canvas = this.$refs.canvasRef
-    this.calculate()
     this.ctx = this.canvas.getContext('2d')
     this.$nextTick(() => {
       this.initWidth = this.canvas.clientWidth
       this.initHeight = this.canvas.clientHeight
     })
-    window.onresize = () => {
+    // 添加一个iframe来监听
+    const iframe = document.createElement('iframe')
+    iframe.classList.add('iframe-class')
+    this.canvas.parentNode.appendChild(iframe)
+    this.calculate()
+    iframe.contentWindow.onresize = () => {
       this.calculate()
       this.ratio = this.width / this.initWidth
       this.$nextTick(() => {
         this.repaint()
       })
     }
+    // window.onresize = () => {
+    //   this.calculate()
+    //   this.ratio = this.width / this.initWidth
+    //   this.$nextTick(() => {
+    //     this.repaint()
+    //   })
+    // }
     // 监听canvas的变化
     this.room.addEventListener(TK.EVENT_TYPE.roomPubmsg, e => {
       if (e.message.name === 'LxmCanvas') {
@@ -143,9 +164,10 @@ export default {
   },
   methods: {
     calculate () {
-      const parent = this.canvas.parentNode
+      const parent = this.canvas.parentNode.querySelector('iframe')
       const pW = parent.clientWidth
       const pH = parent.clientHeight
+      console.log(33333, pW, pH)
       if (pW * .8 > pH) {
         this.width = pH / .8
         this.height = pH

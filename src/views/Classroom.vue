@@ -15,8 +15,8 @@
       display flex
       flex-direction column
       .class-whiteboard
-        // flex-grow 1
-        height calc(100% - 1.5rem)
+        flex-shrink 1
+        height 100%
         position relative
         background-color #ccc
         .lxm-whiteboard
@@ -32,6 +32,8 @@
           z-index 2
           background-color #eee
           position absolute
+          top 0
+          left 0
           .file-png
             width 100%
             height 100%
@@ -263,7 +265,7 @@
   Header(:role="role" :room="room" :classBegin.sync="classBegin" :networkStatus="networkStatus" :files="files" @showTools="showTools" :students="students" :devices="devices" @settinDone="getDevices" :currentFile="currentFile")
   .classroom-content
     .class-board
-      .class-whiteboard
+      .class-whiteboard(:style="{height: students.some(item => item.publishstate) ? 'calc(100% - 1.5rem)' : '100%'}")
         //- #lxmWhiteBoard.lxm-whiteboard
         WhiteBoard(:room="room" :role="role")
         Datiqi(v-if="role === 0 && toolsShow.datiqi" :room="room" @onClose="closeTools")
