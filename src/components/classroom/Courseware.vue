@@ -170,7 +170,7 @@
             img.title-img(src="../../assets/images/whiteboard.png")
             .title-text 白板
           .item-ctrl
-            span.ctrl-show(:class="currentFile ? 'icon-close_eye' : 'icon-open_eye'")
+            span.ctrl-show(:class="Object.keys(currentFile).length ? 'icon-close_eye' : 'icon-open_eye'")
         .file-item(v-for="item in classFile" :key="item.fileid" @click="shareCourse(item)")
           .title
             img.title-img(src="../../assets/images/icon_file.png")

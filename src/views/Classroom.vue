@@ -278,6 +278,7 @@
         ZhuanpanStu(v-if="role === 2 && toolsShow.zhuanpanStu" :room="room")
         .class-file-show(v-if="Object.keys(currentFile).length")
           .file-png(v-if="currentFile && ['png', 'txt', 'pdf'].includes(currentFile.filetype)" :style="`background-image: url('https://doccdn.talk-cloud.net${currentFile.swfpath.replace(/\.(png|jpg)$/, '-'+currpage+'.$1')}')`")
+          WhiteBoard(:room="room" :role="role" :withFile="true" :fileImg="`https://doccdn.talk-cloud.net${currentFile.swfpath.replace(/\.(png|jpg)$/, '-'+currpage+'.$1')}`")
         #classMediaBox.class-media-box
         .class-file-control(v-if="role === 0")
           .page-btn.prev-page(@click="changePage('prev')" :class="{disabled: currpage === 1}")
@@ -451,7 +452,10 @@ export default {
       // 共享课件事件
       if (e.message?.name === 'ShowPage') {
         console.log('共享文件事件', e.message)
-        this.currentFile = e.message.data.filedata || null
+        this.currentFile = {}
+        this.$nextTick(() => {
+          this.currentFile = e.message.data.filedata || {}
+        })
         this.currpage = e.message.data?.filedata?.currpage || 1
       }
       // 共享音频文件

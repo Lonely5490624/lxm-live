@@ -23,6 +23,44 @@
         background-color $them
       &.disabled
         color #999
+      &.tool-setting
+        position relative
+        .setting-main
+          position absolute
+          bottom 0
+          right 40px
+          width 216px
+          background-color rgba(0,0,0,.5)
+          cursor auto
+          .setting-color
+            display flex
+            flex-wrap wrap
+            justify-content space-between
+            padding 12px
+            margin-top -12px
+            .color-item
+              width 22px
+              height 22px
+              border 1px solid #ffffff
+              border-radius 3px
+              cursor pointer
+              margin-right 12px
+              margin-top 12px
+              position relative
+              &:nth-of-type(6n)
+                margin-right 0
+              &.active:after
+                content: ""
+                position absolute
+                border 3px solid #ffffff
+                box-sizing border-box
+                width 26px
+                height 26px
+                top -3px
+                left -3px
+                border-radius 3px
+          .setting-size
+            padding 0 12px
   canvas
     background-color #fff
   .overflow
@@ -31,6 +69,15 @@
     top 0
     right 0
     bottom 0
+  &.withFile
+    position absolute
+    top 0
+    bottom 0
+    left 0
+    right 0
+    background-color transparent
+    canvas
+      background-color transparent
 </style>
 <style lang="stylus">
 .iframe-class
@@ -41,10 +88,14 @@
   width 100%
   height 100%
   pointer-events none
+.white-board
+  .el-slider__runway
+    margin-top 6px
+    margin-bottom 12px
 </style>
 
 <template lang="pug">
-  .white-board(ref="whiteBoardRef")
+  .white-board(ref="whiteBoardRef" :class="{withFile: withFile}")
     .board-tools(v-if="this.role === 0")
       .tool-item(@click="tool = 'mouse'" :class="{active: tool === 'mouse'}")
         i.icon-mouse
@@ -64,6 +115,24 @@
         i.icon-before
       .tool-item.disabled(v-else)
         i.icon-before
+      .tool-item.tool-setting 设置
+        .setting-main
+          .setting-color
+            .color-item(
+              v-for="item in colorArray"
+              :key="item"
+              :class="{active: item === style.strokeStyle}"
+              :style="{background: item}"
+              @click="style.strokeStyle = item"
+            )
+          .setting-size
+            el-slider.volume-slider(
+              v-model="style.lineWidth"
+              @input=""
+              :min="1"
+              :max="20"
+            )
+
       //- @todo 清屏（由于清屏后回滚有问题）
       //- .tool-item(@click="clear")
       //-   i.icon-delete
@@ -73,11 +142,24 @@
 
 <script>
 // import debounce from 'lodash.debounce'
+import loadImage from '@/utils/loadImgPromise'
+
+const colorArray = [
+  '#000', '#9b9b9b', '#fff', '#ff7ea1', '#ff3b58', '#f00',
+  '#f08218', '#b66700', '#8f4200', '#ff7500', '#ffd100', '#fff600',
+  '#abd500', '#78bc24', '#2ea937', '#16b4a4', '#40c3ff', '#008deb',
+  '#0043ff', '#bfc7ff', '#e352ff', '#76288b', '#412088', '#0f2378'
+]
 
 export default {
   props: {
     room: Object,
-    role: Number
+    role: Number,
+    withFile: {
+      type: Boolean,
+      default: false
+    },
+    fileImg: String
   },
   data () {
     return {
@@ -105,27 +187,42 @@ export default {
       },
       style: {
         strokeStyle: '#f00',
-        lineWidth: 2
+        lineWidth: 2,
+        globalCompositeOperation: 'source-over'
       },
       undoArray: [],
       // redoArray: [],
-      isClear: false
+      isClear: false,
+      img: {
+        width: 0,
+        height: 0
+      },
+      colorArray
     }
   },
-  mounted () {
+  async mounted () {
     this.canvas = this.$refs.canvasRef
     this.ctx = this.canvas.getContext('2d')
-    this.$nextTick(() => {
-      this.initWidth = this.canvas.clientWidth
-      this.initHeight = this.canvas.clientHeight
-    })
     // 添加一个iframe来监听
     const iframe = document.createElement('iframe')
     iframe.classList.add('iframe-class')
     this.canvas.parentNode.appendChild(iframe)
     this.calculate()
-    iframe.contentWindow.onresize = () => {
-      this.calculate()
+    this.$nextTick(() => {
+      this.initWidth = this.width
+      this.initHeight = this.height
+    })
+    // 如果和文件一起的canvas
+    if (this.withFile && this.fileImg) {
+      const img = await loadImage(this.fileImg)
+      this.img.width = img.width
+      this.img.height = img.height
+      this.width = img.width / img.height * this.height
+      this.initWidth = this.width
+      this.initHeight = this.height
+    }
+    iframe.contentWindow.onresize = async () => {
+      await this.calculate()
       this.ratio = this.width / this.initWidth
       this.$nextTick(() => {
         this.repaint()
@@ -140,7 +237,7 @@ export default {
     // }
     // 监听canvas的变化
     this.room.addEventListener(TK.EVENT_TYPE.roomPubmsg, e => {
-      if (e.message.name === 'LxmCanvas') {
+      if (e.message.name === 'LxmCanvas' && this.withFile === e.message.data.withFile) {
         this.initWidth = e.message.data.initWidth
         this.initHeight = e.message.data.initHeight
         this.ratio = this.width / e.message.data.initWidth
@@ -154,25 +251,32 @@ export default {
       const canvasMessage = e.message?.find(item => item.name === 'LxmCanvas')
       if (canvasMessage) {
         const data = JSON.parse(canvasMessage.data)
-        this.initWidth = data.initWidth
-        this.initHeight = data.initHeight
-        this.ratio = this.width / data.initWidth
-        this.allPath = data.allPath
-        this.repaint()
+        if (this.withFile === data.withFile) {
+          this.initWidth = data.initWidth
+          this.initHeight = data.initHeight
+          this.ratio = this.width / data.initWidth
+          this.allPath = data.allPath
+          this.repaint()
+        }
       }
     })
   },
   methods: {
-    calculate () {
+    async calculate () {
       const parent = this.canvas.parentNode.querySelector('iframe')
       const pW = parent.clientWidth
       const pH = parent.clientHeight
-      if (pW * .8 > pH) {
-        this.width = pH / .8
+      if (this.withFile && this.fileImg) {
         this.height = pH
+        this.width = this.img.width / this.img.height * this.height
       } else {
-        this.width = pW
-        this.height = pW * .8
+        if (pW * .8 > pH) {
+          this.width = pH / .8
+          this.height = pH
+        } else {
+          this.width = pW
+          this.height = pW * .8
+        }
       }
     },
     canvasMouseDown(e) {
@@ -186,21 +290,14 @@ export default {
         case 'line':
           this.allPath.push({
             type: 'line',
-            style: this.style,
+            style: JSON.parse(JSON.stringify(this.style)),
             path: []
           })
           break
         case 'rect':
           this.allPath.push({
             type: 'rect',
-            style: this.style,
-            path: []
-          })
-          break
-        case 'eraser':
-          this.allPath.push({
-            type: 'eraser',
-            style: this.style,
+            style: JSON.parse(JSON.stringify(this.style)),
             path: []
           })
           break
@@ -209,6 +306,7 @@ export default {
       }
     },
     canvasMouseMove(e) {
+      this.ctx.lineCap = 'round'
       if (this.isDraw) {
         const x = e.offsetX
         const y = e.offsetY
@@ -216,8 +314,13 @@ export default {
         /**
          * @todo 鼠标移出canvas区域取消绘制
          */
+        this.style.globalCompositeOperation = 'source-over'
         switch (this.tool) {
           case 'pencil':
+            // 画线不需要repaint，所以在这里设置样式
+            this.ctx.strokeStyle = this.style.strokeStyle
+            this.ctx.lineWidth = this.style.lineWidth
+            this.ctx.globalCompositeOperation = this.style.globalCompositeOperation
             this.drawPencil(this.oldPoint.x, this.oldPoint.y, x, y)
             // push进去时，需要先除比例，避免位移偏
             this.curPath.push([x / this.ratio, y / this.ratio])
@@ -233,8 +336,14 @@ export default {
             this.repaint()
             break
           case 'eraser':
-            this.drawEraser(x, y)
+            this.style.globalCompositeOperation = 'destination-out'
+            this.ctx.globalCompositeOperation = this.style.globalCompositeOperation
+            this.ctx.strokeStyle = this.style.strokeStyle
+            this.ctx.lineWidth = this.style.lineWidth
+            this.drawEraser(this.oldPoint.x, this.oldPoint.y, x, y)
             this.eraserPath.push([x / this.ratio, y / this.ratio])
+            this.oldPoint.x = x
+            this.oldPoint.y = y
             break
           default:
             break
@@ -249,7 +358,7 @@ export default {
           if (this.curPath.length > 1) {
             this.allPath.push({
               type: 'pencil',
-              style: this.style,
+              style: JSON.parse(JSON.stringify(this.style)),
               path: this.curPath
             })
             this.curPath = []
@@ -265,7 +374,7 @@ export default {
           if (this.eraserPath.length > 1) {
             this.allPath.push({
               type: 'eraser',
-              style: this.style,
+              style: JSON.parse(JSON.stringify(this.style)),
               path: this.eraserPath
             })
             this.eraserPath = []
@@ -285,8 +394,8 @@ export default {
     // 画自由线
     drawPencil (ox, oy, x, y) {
       // 设置样式
-      this.ctx.strokeStyle = this.style.strokeStyle
-      this.ctx.lineWidth = this.style.lineWidth
+      // this.ctx.strokeStyle = this.style.strokeStyle
+      // this.ctx.lineWidth = this.style.lineWidth
       this.ctx.beginPath()
       this.ctx.moveTo(ox, oy)
       this.ctx.lineTo(x, y)
@@ -296,8 +405,8 @@ export default {
     // 画直线
     drawLine (ox, oy, x, y) {
       // 设置样式
-      this.ctx.strokeStyle = this.style.strokeStyle
-      this.ctx.lineWidth = this.style.lineWidth
+      // this.ctx.strokeStyle = this.style.strokeStyle
+      // this.ctx.lineWidth = this.style.lineWidth
       this.ctx.beginPath()
       this.ctx.moveTo(ox, oy)
       this.ctx.lineTo(x, y)
@@ -307,30 +416,38 @@ export default {
     // 画矩形
     drawRect (ox, oy, x, y) {
       // 设置样式
-      this.ctx.strokeStyle = this.style.strokeStyle
-      this.ctx.lineWidth = this.style.lineWidth
+      // this.ctx.strokeStyle = this.style.strokeStyle
+      // this.ctx.lineWidth = this.style.lineWidth
       this.ctx.beginPath()
       this.ctx.strokeRect(ox, oy, x - ox, y - oy)
       this.ctx.closePath()
     },
     // 橡皮擦功能
-    drawEraser (x, y) {
+    drawEraser (ox, oy, x, y) {
       // 设置样式
-      this.ctx.strokeStyle = '#ffffff'
+      // this.ctx.strokeStyle = '#ffffff'
       this.ctx.beginPath()
-      this.ctx.arc(x, y, 10 * this.ratio, 0, Math.PI * 2, false)
-      this.ctx.closePath()
+      this.ctx.moveTo(ox, oy)
+      this.ctx.lineTo(x, y)
       this.ctx.stroke()
-      this.ctx.fillStyle = '#ffffff'
-      this.ctx.fill()
+      this.ctx.closePath()
+      // this.ctx.beginPath()
+      // // this.ctx.arc(x, y, 10 * this.ratio, 0, Math.PI * 2, false)
+      // // this.ctx.clearRect(x - 10, y - 10, 20, 20)
+      // this.ctx.closePath()
+      // this.ctx.stroke()
+      // // this.ctx.fillStyle = '#ffffff'
+      // this.ctx.fill()
     },
     // 将allPath保存的图形进行重绘
     repaint () {
       // 先清除画布
       this.ctx.clearRect(0, 0, this.width, this.height)
+      this.ctx.lineCap = 'round'
       this.allPath.forEach(item => {
         this.ctx.strokeStyle = item.style.strokeStyle
         this.ctx.lineWidth = item.style.lineWidth
+        this.ctx.globalCompositeOperation = item.style.globalCompositeOperation
         switch (item.type) {
           case 'pencil':
             {
@@ -356,8 +473,13 @@ export default {
             break
           case 'eraser':
             {
+              let ox = item.path[0][0] // eslint-disable-line
+              let oy = item.path[0][1] // eslint-disable-line
               item.path.forEach(ele => {
-                this.drawEraser(ele[0] * this.ratio, ele[1] * this.ratio)
+                // 重绘的时候需要带上比例
+                this.drawEraser(ox * this.ratio, oy * this.ratio, ele[0] * this.ratio, ele[1] * this.ratio)
+                ox = ele[0]
+                oy = ele[1]
               })
             }
             break
@@ -409,6 +531,7 @@ export default {
         save: true,
         toID: TK.MSG_TO_ALLEXCEPTSENDER,
         data: JSON.stringify({
+          withFile: this.withFile,
           initWidth: this.initWidth,
           initHeight: this.initHeight,
           allPath: this.allPath
