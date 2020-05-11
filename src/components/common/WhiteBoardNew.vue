@@ -25,6 +25,9 @@
         color #999
       &.tool-setting
         position relative
+        font-size 14px
+        &:hover .setting-main
+          display block
         .setting-main
           position absolute
           bottom 0
@@ -32,6 +35,7 @@
           width 216px
           background-color rgba(0,0,0,.5)
           cursor auto
+          display none
           .setting-color
             display flex
             flex-wrap wrap
@@ -128,12 +132,11 @@
           .setting-size
             el-slider.volume-slider(
               v-model="style.lineWidth"
-              @input=""
               :min="1"
               :max="20"
             )
 
-      //- @todo 清屏（由于清屏后回滚有问题）
+      //- @todo 清屏（由于清屏后回滚有问题）也可以通过globalCompositeOperation然后绘制一整个实心矩形来完成
       //- .tool-item(@click="clear")
       //-   i.icon-delete
     canvas#lxmWhiteBoard(ref="canvasRef" :width="width" :height="height" @mousedown="canvasMouseDown" @mousemove="canvasMouseMove" @mouseup="canvasMouseUp")
@@ -159,7 +162,10 @@ export default {
       type: Boolean,
       default: false
     },
-    fileImg: String
+    fileImg: String,
+    initAllPath: Array,
+    outerInitWidth: Number,
+    outerInitHeight: Number
   },
   data () {
     return {
@@ -220,6 +226,16 @@ export default {
       this.width = img.width / img.height * this.height
       this.initWidth = this.width
       this.initHeight = this.height
+    }
+    // 这里表示是文件的canvas路径
+    if (this.withFile && this.initAllPath.length) {
+      this.allPath = this.initAllPath
+      this.initWidth = this.outerInitWidth
+      this.initHeight = this.outerInitHeight
+      this.ratio = this.width / this.initWidth
+      this.$nextTick(() => {
+        this.repaint()
+      })
     }
     iframe.contentWindow.onresize = async () => {
       await this.calculate()
@@ -384,7 +400,7 @@ export default {
           break
       }
       // 如果allPath里面的path没有值，直接删除，避免出现空的情况
-      if (this.allPath[this.allPath.length - 1]['path'] && !this.allPath[this.allPath.length - 1]['path'].length) {
+      if (this.allPath[this.allPath.length - 1] && this.allPath[this.allPath.length - 1]['path'] && !this.allPath[this.allPath.length - 1]['path'].length) {
         this.allPath.splice(this.allPath.length - 1)
       }
       this.isClear = false
@@ -393,9 +409,6 @@ export default {
     },
     // 画自由线
     drawPencil (ox, oy, x, y) {
-      // 设置样式
-      // this.ctx.strokeStyle = this.style.strokeStyle
-      // this.ctx.lineWidth = this.style.lineWidth
       this.ctx.beginPath()
       this.ctx.moveTo(ox, oy)
       this.ctx.lineTo(x, y)
@@ -404,9 +417,6 @@ export default {
     },
     // 画直线
     drawLine (ox, oy, x, y) {
-      // 设置样式
-      // this.ctx.strokeStyle = this.style.strokeStyle
-      // this.ctx.lineWidth = this.style.lineWidth
       this.ctx.beginPath()
       this.ctx.moveTo(ox, oy)
       this.ctx.lineTo(x, y)
@@ -415,29 +425,17 @@ export default {
     },
     // 画矩形
     drawRect (ox, oy, x, y) {
-      // 设置样式
-      // this.ctx.strokeStyle = this.style.strokeStyle
-      // this.ctx.lineWidth = this.style.lineWidth
       this.ctx.beginPath()
       this.ctx.strokeRect(ox, oy, x - ox, y - oy)
       this.ctx.closePath()
     },
     // 橡皮擦功能
     drawEraser (ox, oy, x, y) {
-      // 设置样式
-      // this.ctx.strokeStyle = '#ffffff'
       this.ctx.beginPath()
       this.ctx.moveTo(ox, oy)
       this.ctx.lineTo(x, y)
       this.ctx.stroke()
       this.ctx.closePath()
-      // this.ctx.beginPath()
-      // // this.ctx.arc(x, y, 10 * this.ratio, 0, Math.PI * 2, false)
-      // // this.ctx.clearRect(x - 10, y - 10, 20, 20)
-      // this.ctx.closePath()
-      // this.ctx.stroke()
-      // // this.ctx.fillStyle = '#ffffff'
-      // this.ctx.fill()
     },
     // 将allPath保存的图形进行重绘
     repaint () {

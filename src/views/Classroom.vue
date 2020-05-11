@@ -278,15 +278,23 @@
         ZhuanpanStu(v-if="role === 2 && toolsShow.zhuanpanStu" :room="room")
         .class-file-show(v-if="Object.keys(currentFile).length")
           .file-png(v-if="currentFile && ['png', 'txt', 'pdf'].includes(currentFile.filetype)" :style="`background-image: url('https://doccdn.talk-cloud.net${currentFile.swfpath.replace(/\.(png|jpg)$/, '-'+currpage+'.$1')}')`")
-          WhiteBoard(:room="room" :role="role" :withFile="true" :fileImg="`https://doccdn.talk-cloud.net${currentFile.swfpath.replace(/\.(png|jpg)$/, '-'+currpage+'.$1')}`")
+          WhiteBoard(
+            :room="room"
+            :role="role"
+            :withFile="true"
+            :initAllPath.once="initAllPath"
+            :outerInitWidth.once="initWidth"
+            :outerInitHeight.once="initHeight"
+            :fileImg="`https://doccdn.talk-cloud.net${currentFile.swfpath.replace(/\.(png|jpg)$/, '-'+currpage+'.$1')}`"
+          )
         #classMediaBox.class-media-box
         .class-file-control(v-if="role === 0")
           .page-btn.prev-page(@click="changePage('prev')" :class="{disabled: currpage === 1}")
           .page-jump
-            input.page-cur(:value="currpage" @blur="jumpPage" @keyup.enter="jumpPage")
+            input.page-cur(:value="currpage" :readonly="!Object.keys(currentFile).length" @blur="jumpPage" @keyup.enter="jumpPage")
             .page-sep /
             .page-all {{currentFile && currentFile.pagenum || 1}}
-          .page-btn.next-page(@click="changePage('next')" :class="{disabled: !currentFile || currpage === currentFile.pagenum}")
+          .page-btn.next-page(@click="changePage('next')" :class="{disabled: !Object.keys(currentFile).length || !currentFile || currpage === currentFile.pagenum}")
         .class-file-control(v-else)
           .page-btn.prev-page(:class="{disabled: currpage === 1}")
           .page-jump
@@ -380,7 +388,10 @@ export default {
       },
       devices: null,
       currentFile: {},
-      currpage: 1
+      currpage: 1,
+      initAllPath: [],
+      initWidth: 0,
+      initHeight: 0
     }
   },
   computed: {
@@ -391,6 +402,27 @@ export default {
   beforeMount () {
     this.role = +localStorage.getItem('role')
     this.room = TK.Room()
+    // 房间连接事件
+    this.room.addEventListener(TK.EVENT_TYPE.roomConnected, (e) => {
+      console.log('房间连接成功2222', e)
+      const fileMessage = e.message.find(item => item.name === 'ShowPage')
+      if (fileMessage) {
+        const data = JSON.parse(fileMessage.data)
+        if (data.filedata && Object.keys(data.filedata).length) {
+          this.currentFile = data.filedata
+          this.currpage = data.filedata.currpage || 1
+        }
+      }
+      const canvasMessage = e.message?.find(item => item.name === 'LxmCanvas')
+      if (canvasMessage) {
+        const data = JSON.parse(canvasMessage.data)
+        if (data.withFile) {
+          this.initAllPath = data.allPath
+          this.initWidth = data.initWidth
+          this.initHeight = data.initHeight
+        }
+      }
+    })
   },
   mounted () {
     this.initRoom()
@@ -452,7 +484,14 @@ export default {
       // 共享课件事件
       if (e.message?.name === 'ShowPage') {
         console.log('共享文件事件', e.message)
-        this.currentFile = {}
+        /**
+         * 这里如果是相同文件，则不重置为{}
+         * 若不相同，则重置为{}，这样在不同文件之间切换时，canvas里面的内容清空
+         */
+        if (this.currentFile.fileid !== e.message.data.filedata.fileid) {
+          this.currentFile = {}
+          this.initAllPath = []
+        }
         this.$nextTick(() => {
           this.currentFile = e.message.data.filedata || {}
         })
@@ -591,7 +630,6 @@ export default {
 
     // 用户属性改变事件
     this.room.addEventListener(TK.EVENT_TYPE.roomUserPropertyChanged, (e) => {
-      console.log(11111, e)
       const myId = this.room.getMySelf().id
       if (e.message?.hasOwnProperty('publishstate')) {
         /**
@@ -899,7 +937,6 @@ export default {
     },
     // 关闭工具箱里面的工具
     closeTools (item) {
-      console.log(11111, item)
       switch (item) {
         case 'datiqi':
           this.toolsShow.datiqi = false
@@ -925,6 +962,7 @@ export default {
     },
     // 文件翻页
     changePage (type) {
+      if (!Object.keys(this.currentFile).length) return
       if (type === 'prev') {
         if (this.currpage === 1) {
           return
@@ -950,6 +988,10 @@ export default {
     },
     // 跳转翻页
     jumpPage (e) {
+      if (!Object.keys(this.currentFile).length) {
+        e.target.value = 1
+        return
+      }
       if (e.target.value <= 1) {
         this.currpage = 1
       } else if (e.target.value >= this.currentFile.pagenum) {
