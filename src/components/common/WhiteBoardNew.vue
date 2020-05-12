@@ -64,7 +64,16 @@
                 left -3px
                 border-radius 3px
           .setting-size
-            padding 0 12px
+            padding 0 12px 6px
+            display flex
+            justify-content space-between
+            align-items center
+            .size-value
+              width 20px
+              line-height 30px
+              text-align left
+            .setting-size-slider
+              width 100%
   canvas
     background-color #fff
   .overflow
@@ -95,7 +104,7 @@
 .white-board
   .el-slider__runway
     margin-top 6px
-    margin-bottom 12px
+    margin-bottom 6px
 </style>
 
 <template lang="pug">
@@ -122,7 +131,7 @@
       //- @todo 清屏（由于清屏后回滚有问题）也可以通过globalCompositeOperation然后绘制一整个实心矩形来完成
       .tool-item(@click="clear" title="清屏" :class="{disabled: !allPath.length || allPath[allPath.length - 1].type === 'clear'}")
         i.icon-delete
-      .tool-item.tool-setting(title="设置") 设置
+      .tool-item.tool-setting 设置
         .setting-main
           .setting-color
             .color-item(
@@ -133,10 +142,12 @@
               @click="style.strokeStyle = item"
             )
           .setting-size
-            el-slider.volume-slider(
+            .size-value {{style.lineWidth}}
+            el-slider.setting-size-slider(
               v-model="style.lineWidth"
               :min="1"
               :max="20"
+              :show-tooltip="false"
             )
     canvas#lxmWhiteBoard(ref="canvasRef" :width="width" :height="height" @mousedown="canvasMouseDown" @mousemove="canvasMouseMove" @mouseup="canvasMouseUp")
     .overflow(v-if="this.role === 2 && !candraw")
