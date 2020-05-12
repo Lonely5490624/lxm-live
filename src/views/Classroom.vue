@@ -303,7 +303,7 @@
             input.page-cur(:value="currpage" disabled)
             .page-sep /
             .page-all {{currentFile && currentFile.pagenum || 1}}
-          .page-btn.next-page(:class="{disabled: !currentFile || currpage === currentFile.pagenum}")
+          .page-btn.next-page(:class="{disabled: !Object.keys(currentFile).length || !currentFile || currpage === currentFile.pagenum}")
       #stu-videos.class-stu-videos(ref="stuVideoList")
         template(v-for="item in students")
           .stu-video(:key="item.id" :id="`video-${item.id}`" v-if="item.publishstate")
@@ -413,6 +413,9 @@ export default {
     // 房间连接事件
     this.room.addEventListener(TK.EVENT_TYPE.roomConnected, (e) => {
       console.log('房间连接成功2222', e)
+      this.$store.commit('user/setUserData', {
+        userData: this.room.getMySelf()
+      })
       const fileMessage = e.message.find(item => item.name === 'ShowPage')
       if (fileMessage) {
         const data = JSON.parse(fileMessage.data)
@@ -558,6 +561,12 @@ export default {
     // 用户属性改变事件
     this.room.addEventListener(TK.EVENT_TYPE.roomUserPropertyChanged, () => {
       this.getUsers()
+      this.$store.commit('user/setUserData', {
+        userData: null
+      })
+      this.$store.commit('user/setUserData', {
+        userData: this.room.getMySelf()
+      })
     })
     // 网络检测
     this.room.addEventListener(TK.EVENT_TYPE.roomUserNetworkStateChanged, e => {
@@ -720,6 +729,7 @@ export default {
         serial: this.$route.params.serial,
         password: this.role === 0 ? '7580' : '2824'
       })
+      this.myInfo = this.room.getMySelf()
       if (this.role === 0) {
         this.playTeacherVideo()
       }
@@ -933,6 +943,7 @@ export default {
       this.room.pubMsg({
         name: 'ShowPage',
         id: 'DocumentFilePage_ShowPage',
+        save: true,
         data: JSON.stringify({
           filedata
         })
@@ -956,6 +967,7 @@ export default {
       this.room.pubMsg({
         name: 'ShowPage',
         id: 'DocumentFilePage_ShowPage',
+        save: true,
         data: JSON.stringify({
           filedata
         })

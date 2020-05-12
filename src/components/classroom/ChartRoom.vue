@@ -155,26 +155,26 @@
 </template>
 
 <script>
-const defaultMessage = [{
-  type: 'joinRoom',
-  name: '学生A',
-  time: '16:35'
-}, {
-  type: 'leaveRoom',
-  name: '学生B',
-  time: '16.53'
-}, {
-  type: 'message',
-  name: '学生C',
-  message: '哈哈哈哈我去',
-  time: '16:56',
-  isMe: true
-}, {
-  type: 'message',
-  name: '学生C',
-  message: '哈哈哈哈我去',
-  time: '16:56'
-}]
+// const defaultMessage = [{
+//   type: 'joinRoom',
+//   name: '学生A',
+//   time: '16:35'
+// }, {
+//   type: 'leaveRoom',
+//   name: '学生B',
+//   time: '16.53'
+// }, {
+//   type: 'message',
+//   name: '学生C',
+//   message: '哈哈哈哈我去',
+//   time: '16:56',
+//   isMe: true
+// }, {
+//   type: 'message',
+//   name: '学生C',
+//   message: '哈哈哈哈我去',
+//   time: '16:56'
+// }]
 export default {
   props: {
     room: Object,
@@ -184,7 +184,7 @@ export default {
   },
   data () {
     return {
-      messageList: defaultMessage,
+      messageList: [],
       message: '',
       disablechat: false
     }

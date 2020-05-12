@@ -332,8 +332,7 @@ export default {
         })
         this.room.delMsg({
           name: 'ShareAudio',
-          id: 'ShareAudio',
-          save: true
+          id: 'ShareAudio'
         })
       } else if (media.filetype === 'mp3') {
         this.room.pubMsg({
@@ -346,8 +345,7 @@ export default {
         })
         this.room.delMsg({
           name: 'ShareVideo',
-          id: 'ShareVideo',
-          save: true
+          id: 'ShareVideo'
         })
       }
     },

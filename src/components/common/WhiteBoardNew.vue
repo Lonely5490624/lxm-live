@@ -100,26 +100,29 @@
 
 <template lang="pug">
   .white-board(ref="whiteBoardRef" :class="{withFile: withFile}")
-    .board-tools(v-if="this.role === 0")
-      .tool-item(@click="tool = 'mouse'" :class="{active: tool === 'mouse'}")
+    .board-tools(v-if="this.role === 0 || candraw")
+      .tool-item(@click="tool = 'mouse'" :class="{active: tool === 'mouse'}" title="鼠标")
         i.icon-mouse
-      .tool-item(@click="tool = 'pencil'" :class="{active: tool === 'pencil'}")
+      .tool-item(@click="tool = 'pencil'" :class="{active: tool === 'pencil'}" title="画笔")
         i.icon-pen
-      .tool-item(@click="tool = 'line'" :class="{active: tool === 'line'}")
+      .tool-item(@click="tool = 'line'" :class="{active: tool === 'line'}" title="直线")
         i.icon-line
-      .tool-item(@click="tool = 'rect'" :class="{active: tool === 'rect'}")
+      .tool-item(@click="tool = 'rect'" :class="{active: tool === 'rect'}" title="矩形")
         i.icon-kongxinjuxing
-      .tool-item(@click="tool = 'eraser'" :class="{active: tool === 'eraser'}")
+      .tool-item(@click="tool = 'eraser'" :class="{active: tool === 'eraser'}" title="橡皮擦")
         i.icon-xiangpi
-      .tool-item(v-if="allPath.length || isClear" @click="undo")
+      .tool-item(v-if="allPath.length || isClear" @click="undo" title="撤销")
         i.icon-back
       .tool-item.disabled(v-else)
         i.icon-back
-      .tool-item(v-if="undoArray.length" @click="redo")
+      .tool-item(v-if="undoArray.length" @click="redo" title="恢复")
         i.icon-before
       .tool-item.disabled(v-else)
         i.icon-before
-      .tool-item.tool-setting 设置
+      //- @todo 清屏（由于清屏后回滚有问题）也可以通过globalCompositeOperation然后绘制一整个实心矩形来完成
+      .tool-item(@click="clear" title="清屏" :class="{disabled: !allPath.length || allPath[allPath.length - 1].type === 'clear'}")
+        i.icon-delete
+      .tool-item.tool-setting(title="设置") 设置
         .setting-main
           .setting-color
             .color-item(
@@ -135,12 +138,8 @@
               :min="1"
               :max="20"
             )
-
-      //- @todo 清屏（由于清屏后回滚有问题）也可以通过globalCompositeOperation然后绘制一整个实心矩形来完成
-      //- .tool-item(@click="clear")
-      //-   i.icon-delete
     canvas#lxmWhiteBoard(ref="canvasRef" :width="width" :height="height" @mousedown="canvasMouseDown" @mousemove="canvasMouseMove" @mouseup="canvasMouseUp")
-    .overflow(v-if="this.role === 2")
+    .overflow(v-if="this.role === 2 && !candraw")
 </template>
 
 <script>
@@ -206,6 +205,11 @@ export default {
       colorArray
     }
   },
+  computed: {
+    candraw () {
+      return this.$store.state.user?.userData?.candraw
+    }
+  },
   async mounted () {
     this.canvas = this.$refs.canvasRef
     this.ctx = this.canvas.getContext('2d')
@@ -244,13 +248,6 @@ export default {
         this.repaint()
       })
     }
-    // window.onresize = () => {
-    //   this.calculate()
-    //   this.ratio = this.width / this.initWidth
-    //   this.$nextTick(() => {
-    //     this.repaint()
-    //   })
-    // }
     // 监听canvas的变化
     this.room.addEventListener(TK.EVENT_TYPE.roomPubmsg, e => {
       if (e.message.name === 'LxmCanvas' && this.withFile === e.message.data.withFile) {
@@ -404,6 +401,7 @@ export default {
         this.allPath.splice(this.allPath.length - 1)
       }
       this.isClear = false
+      // 每次绘制需要清空撤销的数组
       this.undoArray = []
       this.sendCanvas()
     },
@@ -481,6 +479,12 @@ export default {
               })
             }
             break
+          case 'clear':
+            this.ctx.globalCompositeOperation = 'destination-out'
+            this.ctx.beginPath()
+            this.ctx.fillRect(0, 0, this.width, this.height)
+            this.ctx.closePath()
+            break
           default:
             break;
         }
@@ -513,13 +517,20 @@ export default {
        */
     },
     clear() {
-      if (this.allPath.length) {
-        this.isClear = true
-        this.undoArray.push(...this.allPath)
-        this.allPath = []
-        this.repaint()
+      if (this.allPath.length > 0 && this.allPath[this.allPath.length - 1].type !== 'clear') {
+        this.style.globalCompositeOperation = 'destination-out'
+        this.ctx.globalCompositeOperation = this.style.globalCompositeOperation
+        this.ctx.beginPath()
+        this.ctx.fillRect(0, 0, this.width, this.height)
+        this.ctx.closePath()
+        this.allPath.push({
+          type: 'clear',
+          style: this.style
+        })
+        // 清屏时也要清空撤销数组
+        this.undoArray = []
+        this.sendCanvas()
       }
-      this.sendCanvas()
     },
     // 向教室其他人发送消息
     sendCanvas () {

@@ -97,6 +97,10 @@ export default {
           audio.currentTime = e.message.data?.currentTime
           break
         case 'CloseAudio':
+          this.room.delMsg({
+            name: 'ShareAudio',
+            id: 'ShareAudio'
+          })
           this.$emit('close')
           break
         default:

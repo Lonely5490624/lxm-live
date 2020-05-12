@@ -102,6 +102,10 @@ export default {
           video.currentTime = e.message.data?.currentTime
           break
         case 'CloseVideo':
+          this.room.delMsg({
+            name: 'ShareVideo',
+            id: 'ShareVideo'
+          })
           this.$emit('close')
           break
         default:
