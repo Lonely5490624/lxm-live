@@ -287,6 +287,8 @@
             :outerInitHeight.once="initHeight"
             :fileImg="`https://doccdn.talk-cloud.net${currentFile.swfpath.replace(/\.(png|jpg)$/, '-'+currpage+'.$1')}`"
           )
+        VideoPlayer(v-if="videoSrc" :room="room" :role="role" :src="videoSrc" @close="videoSrc = ''")
+        AudioPlayer(v-if="audioSrc" :room="room" :role="role" :src="audioSrc" @close="audioSrc = ''")
         #classMediaBox.class-media-box
         .class-file-control(v-if="role === 0")
           .page-btn.prev-page(@click="changePage('prev')" :class="{disabled: currpage === 1}")
@@ -349,6 +351,8 @@ import Qiangdaqi from '@/components/tools/Qiangdaqi'
 import QiangdaqiStu from '@/components/tools/QiangdaqiStu'
 import Zhuanpan from '@/components/tools/Zhuanpan'
 import ZhuanpanStu from '@/components/tools/ZhuanpanStu'
+import VideoPlayer from '@/components/classroom/VideoPlayer'
+import AudioPlayer from '@/components/classroom/AudioPlayer'
 
 export default {
   components: {
@@ -362,7 +366,9 @@ export default {
     Qiangdaqi,
     QiangdaqiStu,
     Zhuanpan,
-    ZhuanpanStu
+    ZhuanpanStu,
+    VideoPlayer,
+    AudioPlayer
   },
   data () {
     return {
@@ -391,7 +397,9 @@ export default {
       currpage: 1,
       initAllPath: [],
       initWidth: 0,
-      initHeight: 0
+      initHeight: 0,
+      videoSrc: '',
+      audioSrc: ''
     }
   },
   computed: {
@@ -435,8 +443,17 @@ export default {
         this.room.publishVideo()
       }
       this.getUsers()
+      const shareVideo = e.message.find(item => item.name === 'ShareVideo')
+      if (shareVideo && shareVideo.data) {
+        const data = JSON.parse(shareVideo.data)
+        this.videoSrc = data.url
+      }
+      const shareAudio = e.message.find(item => item.name === 'ShareAudio')
+      if (shareAudio && shareAudio.data) {
+        const data = JSON.parse(shareAudio.data)
+        this.audioSrc = data.url
+      }
     })
-    // 监听上课事件
     this.room.addEventListener(TK.EVENT_TYPE.roomPubmsg, (e) => {
       // 上课事件
       if (e?.message?.name === 'ClassBegin') {
@@ -497,94 +514,29 @@ export default {
         })
         this.currpage = e.message.data?.filedata?.currpage || 1
       }
+      // 共享视频文件
+      if (e.message.name === 'ShareVideo') {
+        this.videoSrc = e.message.data?.url
+      }
       // 共享音频文件
-      if (e.message?.name === 'PubAudio') {
-        let dom
-        let source
-        if (document.getElementById('PubAudio')) {
-          dom = document.getElementById('PubAudio')
-          source = dom.querySelector('source')
-        } else {
-          dom = document.createElement('video')
-          source = document.createElement('source')
-          if (this.role !== 0) {
-            dom.style.pointerEvents = 'none'
-          }
-          dom.setAttribute('controls', '')
-          dom.setAttribute('autoplay', '')
-          dom.setAttribute('name', 'media')
-          dom.id = e.message.name
-          source.setAttribute('src', e.message?.data?.url)
-          source.setAttribute('type', 'video/webm')
-          document.getElementById('classMediaBox').appendChild(dom)
-          dom.appendChild(source)
-        }
-        dom.addEventListener('pause', () => {
-          if (this.role === 0) {
-            this.room.pubMsg({
-              name: 'PauseAudio',
-              id: 'PauseAudio'
-            })
-          }
-        })
-        dom.addEventListener('play', () => {
-          if (this.role === 0) {
-            this.room.pubMsg({
-              name: 'PlayAudio',
-              id: 'PlayAudio'
-            })
-          }
-        })
-        dom.addEventListener('ended', () => {
-          if (this.role === 0) {
-            this.room.pubMsg({
-              name: 'EndedAudio',
-              id: 'EndedAudio'
-            })
-          }
-        })
-        dom.addEventListener('seeked', () => {
-          if (this.role === 0) {
-            this.room.pubMsg({
-              name: 'SeekAudio',
-              id: 'SeekAudio',
-              toID: TK.MSG_TO_ALLEXCEPTSENDER,
-              data: JSON.stringify({
-                currentTime: dom.currentTime
-              })
-            })
-          }
-        })
-      }
-      // 播放音频
-      if (e.message.name === 'PauseAudio') {
-        document.getElementById('PubAudio').pause()
-        this.room.pauseShareMedia(true)
-      }
-      // 播放音频
-      if (e.message.name === 'PlayAudio') {
-        document.getElementById('PubAudio').play()
-        this.room.pauseShareMedia(false)
-      }
-      // 播放音频
-      if (e.message.name === 'EndedAudio') {
-        if (document.getElementById('PubAudio')) {
-          document.getElementById('classMediaBox').removeChild(document.getElementById('PubAudio'))
-        }
-      }
-      // 拖拽音频
-      if (e.message.name === 'SeekAudio') {
-        if (document.getElementById('PubAudio')) {
-          document.getElementById('PubAudio').currentTime = e.message?.data?.currentTime
-        }
+      if (e.message.name === 'ShareAudio') {
+        this.audioSrc = e.message.data?.url
       }
     })
-    // 监听下课事件
     this.room.addEventListener(TK.EVENT_TYPE.roomDelmsg, (e) => {
+      // 监听下课事件
       if (e?.message?.name === 'ClassBegin') {
         this.classBegin = false
         this.room.unpublishVideo()
         this.getUsers()
+      }
+      // 取消共享视频文件
+      if (e.message.name === 'ShareVideo') {
+        this.videoSrc = ''
+      }
+      // 取消共享音频文件
+      if (e.message.name === 'ShareAudio') {
+        this.audioSrc = ''
       }
     })
     // 用户加入房间事件

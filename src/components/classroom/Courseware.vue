@@ -318,16 +318,38 @@ export default {
     shareMedia (media) {
       console.log('共享媒体文件', media)
       const url = `https://doccdn.talk-cloud.net${media.swfpath.replace(/\.(webm)$/, '-1.$1')}`
-      this.room.startShareMedia(url, media.filetype === 'mp4', err => {
-        console.log('共享媒体文件失败', err)
-      })
-      this.room.pubMsg({
-        name: 'PubAudio',
-        id: 'PubAudio',
-        data: JSON.stringify({
-          url
+      // this.room.startShareMedia(url, media.filetype === 'mp4', err => {
+      //   console.log('共享媒体文件失败', err)
+      // })
+      if (media.filetype === 'mp4') {
+        this.room.pubMsg({
+          name: 'ShareVideo',
+          id: 'ShareVideo',
+          save: true,
+          data: JSON.stringify({
+            url
+          })
         })
-      })
+        this.room.delMsg({
+          name: 'ShareAudio',
+          id: 'ShareAudio',
+          save: true
+        })
+      } else if (media.filetype === 'mp3') {
+        this.room.pubMsg({
+          name: 'ShareAudio',
+          id: 'ShareAudio',
+          save: true,
+          data: JSON.stringify({
+            url
+          })
+        })
+        this.room.delMsg({
+          name: 'ShareVideo',
+          id: 'ShareVideo',
+          save: true
+        })
+      }
     },
     // 切换课件和媒体
     changeType (type) {
