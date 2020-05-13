@@ -192,7 +192,7 @@ export default {
        * 保存所有绘制的图形
        * type: 图形类型，包含pencil, rect, line, arrow
        * style: 图形样式，见this.ctxStyle
-       * pah: 图形路径，Array
+       * path: 图形路径，Array
        */
       allPath: [],
       curPath: [], // 这里保存画自由线时点的集合

@@ -276,6 +276,7 @@
         QiangdaqiStu(v-if="role === 2 && toolsShow.qiangdaqiStu" :room="room")
         Zhuanpan(v-if="role === 0 && toolsShow.zhuanpan" :room="room" @onClose="closeTools")
         ZhuanpanStu(v-if="role === 2 && toolsShow.zhuanpanStu" :room="room")
+        LittleWhiteBoard(:room="room" :role="role")
         .class-file-show(v-if="Object.keys(currentFile).length")
           .file-png(v-if="currentFile && ['png', 'txt', 'pdf'].includes(currentFile.filetype)" :style="`background-image: url('https://doccdn.talk-cloud.net${currentFile.swfpath.replace(/\.(png|jpg)$/, '-'+currpage+'.$1')}')`")
           WhiteBoard(
@@ -353,6 +354,7 @@ import Zhuanpan from '@/components/tools/Zhuanpan'
 import ZhuanpanStu from '@/components/tools/ZhuanpanStu'
 import VideoPlayer from '@/components/classroom/VideoPlayer'
 import AudioPlayer from '@/components/classroom/AudioPlayer'
+import LittleWhiteBoard from '@/components/tools/LittleWhiteBoard'
 
 export default {
   components: {
@@ -368,7 +370,8 @@ export default {
     Zhuanpan,
     ZhuanpanStu,
     VideoPlayer,
-    AudioPlayer
+    AudioPlayer,
+    LittleWhiteBoard
   },
   data () {
     return {
