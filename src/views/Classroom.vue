@@ -276,7 +276,8 @@
         QiangdaqiStu(v-if="role === 2 && toolsShow.qiangdaqiStu" :room="room")
         Zhuanpan(v-if="role === 0 && toolsShow.zhuanpan" :room="room" @onClose="closeTools")
         ZhuanpanStu(v-if="role === 2 && toolsShow.zhuanpanStu" :room="room")
-        LittleWhiteBoard(:room="room" :role="role")
+        LittleWhiteBoard(v-if="role === 0 && toolsShow.xiaobaiban" :room="room" :role="role" @onClose="closeTools")
+        LittleWhiteBoardStu(v-if="role === 2 && toolsShow.xiaobaibanStu" :room="room" :role="role" :canvasData="canvasData")
         .class-file-show(v-if="Object.keys(currentFile).length")
           .file-png(v-if="currentFile && ['png', 'txt', 'pdf'].includes(currentFile.filetype)" :style="`background-image: url('https://doccdn.talk-cloud.net${currentFile.swfpath.replace(/\.(png|jpg)$/, '-'+currpage+'.$1')}')`")
           WhiteBoard(
@@ -355,6 +356,7 @@ import ZhuanpanStu from '@/components/tools/ZhuanpanStu'
 import VideoPlayer from '@/components/classroom/VideoPlayer'
 import AudioPlayer from '@/components/classroom/AudioPlayer'
 import LittleWhiteBoard from '@/components/tools/LittleWhiteBoard'
+import LittleWhiteBoardStu from '@/components/tools/LittleWhiteBoardStu'
 
 export default {
   components: {
@@ -371,7 +373,8 @@ export default {
     ZhuanpanStu,
     VideoPlayer,
     AudioPlayer,
-    LittleWhiteBoard
+    LittleWhiteBoard,
+    LittleWhiteBoardStu
   },
   data () {
     return {
@@ -393,7 +396,9 @@ export default {
         qiangdaqi: false,
         qiangdaqiStu: false,
         zhuanpan: false,
-        zhuanpanStu: false
+        zhuanpanStu: false,
+        xiaobaiban: false,
+        xiaobaibanStu: false
       },
       devices: null,
       currentFile: {},
@@ -528,6 +533,11 @@ export default {
       if (e.message.name === 'ShareAudio') {
         this.audioSrc = e.message.data?.url
       }
+      // 分发小白板事件
+      if (e.message.name === 'LittleWhiteBoard') {
+        this.toolsShow.xiaobaibanStu = true
+        this.canvasData = e.message.data
+      }
     })
     this.room.addEventListener(TK.EVENT_TYPE.roomDelmsg, (e) => {
       // 监听下课事件
@@ -543,6 +553,11 @@ export default {
       // 取消共享音频文件
       if (e.message.name === 'ShareAudio') {
         this.audioSrc = ''
+      }
+      // 监听小白板删除事件
+      if (e.message.name === 'LittleWhiteBoard') {
+        this.toolsShow.xiaobaiban = false
+        this.toolsShow.xiaobaibanStu = false
       }
     })
     // 用户加入房间事件
@@ -896,6 +911,9 @@ export default {
             id: `Zhuanpan_${new Date().getTime()}`
           })
           break
+        case 'xiaobaiban':
+          this.toolsShow.xiaobaiban = true
+          break
         default:
           break
       }
@@ -914,6 +932,9 @@ export default {
           break
         case 'zhuanpan':
           this.toolsShow.zhuanpan = false
+          break
+        case 'xiaobaiban':
+          this.toolsShow.xiaobaiban = false
           break
         default:
           break;

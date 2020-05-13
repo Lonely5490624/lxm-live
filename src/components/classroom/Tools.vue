@@ -60,7 +60,7 @@
     .item-icon
       i.icon-hold_table_share
     .item-text 屏幕共享
-  .tool-item
+  .tool-item(@click="$emit('showTools', 'xiaobaiban')")
     .item-icon
       i.icon-hold_xiaobaiban
     .item-text 小白板

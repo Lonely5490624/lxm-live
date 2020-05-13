@@ -215,7 +215,8 @@ const colorArray = [
 export default {
   props: {
     room: Object,
-    role: Number
+    role: Number,
+    canvasData: Object
   },
   data () {
     return {
@@ -263,6 +264,11 @@ export default {
     }
   },
   async mounted () {
+    this.initWidth = this.canvasData.initWidth
+    this.initHeight = this.canvasData.initHeight
+    this.lwbStatus = this.canvasData.lwbStatus
+    this.allPath = this.canvasData.allPath
+    
     this.canvas = this.$refs.canvasRef
     this.ctx = this.canvas.getContext('2d')
     // 添加一个iframe来监听
@@ -576,7 +582,6 @@ export default {
         name: 'LittleWhiteBoard',
         id: 'LittleWhiteBoard'
       })
-      this.$emit('onClose', 'xiaobaiban')
     }
   }
 }
