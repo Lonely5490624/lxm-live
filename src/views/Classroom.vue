@@ -324,7 +324,8 @@
                 i.icon-btn_mute
     .class-info
       #teacher-video.class-video
-        .teacher-video-hover(v-if="role === 0")
+        //- @todo 将老师的操作设置成上课后才能操作
+        .teacher-video-hover(v-if="role === 0 && teacher")
           i.middle-btn.icon-btn_audio(@click="closeTeacherAudio" v-if="teacher.publishstate === 1 || teacher.publishstate === 3")
           i.middle-btn.icon-btn_mute(v-else @click="openTeacherAudio")
           i.middle-btn.icon-btn_camera(@click="closeVideo" v-if="teacher.publishstate === 2 || teacher.publishstate === 3")
@@ -469,7 +470,12 @@ export default {
         const classBeginInfo = e.message.find(item => item.id === 'ClassBegin')
         this.classBeginTime = classBeginInfo.ts
       }
-      this.getUsers()
+      this.getUsers(() => {
+        console.log('teacher', this.teacher, this.role)
+        if (this.teacher?.publishstate === 2 || this.teacher?.publishstate === 3) {
+          this.playTeacherVideo()
+        }
+      })
       const shareVideo = e.message.find(item => item.name === 'ShareVideo')
       if (shareVideo && shareVideo.data) {
         const data = JSON.parse(shareVideo.data)
