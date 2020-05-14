@@ -30,8 +30,13 @@ export const routes = [
     component: Login,
     beforeEnter (to, from, next) {
       // 如果存在token，则跳转到首页
-      if (localStorage.getItem('token')) {
-        next('/home')
+      if (localStorage.getItem('token') && localStorage.getItem('role')) {
+        // eslint-disable-next-line eqeqeq
+        if (localStorage.getItem('role') == 2) {
+          next('/stu')
+        } else {
+          next('/teacher')
+        }
       } else {
         next()
       }

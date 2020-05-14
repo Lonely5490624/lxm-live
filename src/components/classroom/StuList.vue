@@ -62,22 +62,24 @@
             color #696969
           & + i
             margin-left 30px
+      & + .stu-item
+        margin-top 10px
 </style>
 
 <template lang="pug">
 .stu-box
   .stu-header
     .stu-count 花名册（{{$store.state.stu.stuList.length}}）
-    .stu-search
-      span.icon-search
-      input(type="text" placeholder="请输入搜索内容")
+    //- .stu-search
+    //-   span.icon-search
+    //-   input(type="text" placeholder="请输入搜索内容")
   .stu-list
     .stu-item(v-for="item in $store.state.stu.stuList" :key="item.id")
       .stu-info
         .stu-avatar
           img(src="../../assets/images/avatar.png")
         .stu-name {{item.nickname}}
-      .stu-ctrl
+      .stu-ctrl(v-if="classBegin")
         i.icon-user_handup(v-if="item.raisehand" title="举手")
         i.icon-user_xiajiangtai(v-if="item.publishstate === 0" @click="upStage(item)" title="已下发言席")
         i.icon-user_shangjiangtai(v-else @click="downStage(item)" title="已上发言席")
@@ -89,13 +91,27 @@
         i.icon-user_close_shouquan(v-else title="已取消涂鸦" @click="openDraw(item)")
         i.icon-user_close_jinyan(v-if="item.disablechat" title="已禁言" @click="openChart(item)")
         i.icon-user_jinyan(v-else title="未禁言" @click="closeChart(item)")
+        i.icon-user_remove(title="移除" @click="evictUser(item)")
+      .stu-ctrl(v-else style="opacity: .5;")
+        i.icon-user_handup(v-if="item.raisehand" title="举手")
+        i.icon-user_xiajiangtai(v-if="item.publishstate === 0" title="已下发言席")
+        i.icon-user_shangjiangtai(v-else title="已上发言席")
+        i.icon-user_camera(v-if="item.publishstate === 2 || item.publishstate === 3" title="视频已打开")
+        i.icon-user_close_camera(v-else title="视频已关闭")
+        i.icon-user_maikefeng(v-if="item.publishstate === 1 || item.publishstate === 3" title="音频已打开")
+        i.icon-user_close_maikefeng(v-else title="音频已关闭")
+        i.icon-user_shouquan(v-if="item.candraw" title="已授权涂鸦")
+        i.icon-user_close_shouquan(v-else title="已取消涂鸦")
+        i.icon-user_close_jinyan(v-if="item.disablechat" title="已禁言")
+        i.icon-user_jinyan(v-else title="未禁言")
         i.icon-user_remove(title="移除")
 </template>
 
 <script>
 export default {
   props: {
-    room: Object
+    room: Object,
+    classBegin: Boolean
   },
   methods: {
     // 上台
@@ -189,6 +205,10 @@ export default {
       this.room.changeUserProperty(user.id, TK.MSG_TO_ALLUSER, {
         disablechat: false
       })
+    },
+    // 踢出房间
+    evictUser (user) {
+      this.room.evictUser(user.id)
     }
   }
 }

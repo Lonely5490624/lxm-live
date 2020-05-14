@@ -262,7 +262,7 @@
 
 <template lang="pug">
 .classroom
-  Header(:role="role" :room="room" :classBegin.sync="classBegin" :networkStatus="networkStatus" :files="files" @showTools="showTools" :students="students" :devices="devices" @settinDone="getDevices" :currentFile="currentFile")
+  Header(:role="role" :room="room" :classBegin.sync="classBegin" :networkStatus="networkStatus" :files="files" @showTools="showTools" :students="students" :devices="devices" @settinDone="getDevices" :currentFile="currentFile" :classDuration="classDuration")
   .classroom-content
     .class-board
       .class-whiteboard(:style="{height: students.some(item => item.publishstate) ? 'calc(100% - 1.5rem)' : '100%'}")
@@ -309,7 +309,7 @@
       #stu-videos.class-stu-videos(ref="stuVideoList")
         template(v-for="item in students")
           .stu-video(:key="item.id" :id="`video-${item.id}`" v-if="item.publishstate")
-            .video-hover
+            .video-hover(v-if="role === 0")
               i.middle-btn.icon-btn_shangtai(@click="downStage(item)")
               i.middle-btn.icon-btn_audio(@click="teacherStopStuAudio(item)" v-if="item.publishstate === 1 || item.publishstate === 3")
               i.middle-btn.icon-btn_mute(v-else @click="teacherOpenStuAudio(item)")
@@ -324,7 +324,7 @@
                 i.icon-btn_mute
     .class-info
       #teacher-video.class-video
-        .teacher-video-hover(v-if="teacher")
+        .teacher-video-hover(v-if="role === 0")
           i.middle-btn.icon-btn_audio(@click="closeTeacherAudio" v-if="teacher.publishstate === 1 || teacher.publishstate === 3")
           i.middle-btn.icon-btn_mute(v-else @click="openTeacherAudio")
           i.middle-btn.icon-btn_camera(@click="closeVideo" v-if="teacher.publishstate === 2 || teacher.publishstate === 3")
@@ -407,7 +407,10 @@ export default {
       initWidth: 0,
       initHeight: 0,
       videoSrc: '',
-      audioSrc: ''
+      audioSrc: '',
+      classBeginTime: 0,
+      timer: null,
+      classDuration: 0
     }
   },
   computed: {
@@ -415,7 +418,17 @@ export default {
       return this.students.every(item => item.disablechat)
     }
   },
+  watch: {
+    classBegin (val) {
+      if (val) {
+        this.getClassDuration()
+      } else {
+        this.clearClassDuration()
+      }
+    }
+  },
   beforeMount () {
+    console.log('classroom beforemount')
     this.role = +localStorage.getItem('role')
     this.room = TK.Room()
     // 房间连接事件
@@ -444,6 +457,7 @@ export default {
     })
   },
   mounted () {
+    console.log('classroom mounted')
     this.initRoom()
     this.getDevices()
     // 房间连接事件
@@ -452,6 +466,8 @@ export default {
       if(e.message?.some(item => item.id === 'ClassBegin')) {
         this.classBegin = true
         this.room.publishVideo()
+        const classBeginInfo = e.message.find(item => item.id === 'ClassBegin')
+        this.classBeginTime = classBeginInfo.ts
       }
       this.getUsers()
       const shareVideo = e.message.find(item => item.name === 'ShareVideo')
@@ -468,6 +484,8 @@ export default {
     this.room.addEventListener(TK.EVENT_TYPE.roomPubmsg, (e) => {
       // 上课事件
       if (e?.message?.name === 'ClassBegin') {
+        console.log('开始上课', e)
+        this.classBeginTime = e.message.ts
         this.classBegin = true
         this.room.publishVideo()
         this.getUsers()
@@ -545,6 +563,8 @@ export default {
         this.classBegin = false
         this.room.unpublishVideo()
         this.getUsers()
+        this.$message.error('课程已结束')
+        // this.$router.back()
       }
       // 取消共享视频文件
       if (e.message.name === 'ShareVideo') {
@@ -588,7 +608,9 @@ export default {
     })
     // 网络检测
     this.room.addEventListener(TK.EVENT_TYPE.roomUserNetworkStateChanged, e => {
-      this.networkStatus = e.message?.networkStatus
+      if (e.message.networkStatus.isMe) {
+        this.networkStatus = e.message?.networkStatus
+      }
     })
     this.room.addEventListener(TK.EVENT_TYPE.roomFiles, e => {
       console.log(6666666, e)
@@ -719,13 +741,31 @@ export default {
         }
       }
     })
-    // 监听媒体共享的进度
-    // this.room.addEventListener(TK.EVENT_TYPE.roomUserMediaAttributesUpdate, e => {
-    //   // console.log('监听媒体共享进度', e)
-    //   if (e.message.type === 'media') {
-    //     console.log('媒体进度', e.message.updateAttributes.position)
-    //   }
-    // })
+    // 用户被驱逐出房间
+    this.room.addEventListener(TK.EVENT_TYPE.roomParticipantEvicted, e => {
+      if (e.userid === this.$store.state.user?.userData?.id) {
+        this.$message.error('您已被请出房间')
+        this.$router.back()
+      }
+    })
+  },
+  beforeDestroy () {
+    this.room.removeAllEventListener([
+      TK.EVENT_TYPE.roomConnected,
+      TK.EVENT_TYPE.roomPubmsg,
+      TK.EVENT_TYPE.roomDelmsg,
+      TK.EVENT_TYPE.roomParticipantJoin,
+      TK.EVENT_TYPE.roomParticipantLeave,
+      TK.EVENT_TYPE.roomUserPropertyChanged,
+      TK.EVENT_TYPE.roomUserNetworkStateChanged,
+      TK.EVENT_TYPE.roomFiles,
+      TK.EVENT_TYPE.roomUserPropertyChanged,
+      TK.EVENT_TYPE.roomUserVideoStateChanged,
+      TK.EVENT_TYPE.roomUserAudioStateChanged,
+      TK.EVENT_TYPE.roomUserMediaStateChanged,
+      TK.EVENT_TYPE.roomParticipantEvicted
+    ])
+    this.room.leaveroom()
   },
   methods: {
     // 初始化房间
@@ -739,13 +779,15 @@ export default {
         }, true, {
           isGetFileList: true
         })
+      } else {
+        this.joinRoom()
       }
     },
     // 加入房间
     joinRoom () {
       this.room.joinroom('global.talk-cloud.net', '443', localStorage.getItem('name'), localStorage.getItem('name'), {
         serial: this.$route.params.serial,
-        password: this.role === 0 ? '7580' : '2824'
+        password: this.role === 0 ? '1314' : '4344'
       })
       this.myInfo = this.room.getMySelf()
       if (this.role === 0) {
@@ -808,7 +850,7 @@ export default {
       this.room.unplayVideo(this.teacher.id)
     },
     openTeacherAudio () {
-      if (this.teacher.publishstate === TK.PUBLISH_STATE_NONE || this.teacher.publishstate === TK.PUBLISH_STATE_MUTEALL) {
+      if (this.teacher?.publishstate === TK.PUBLISH_STATE_NONE || this.teacher?.publishstate === TK.PUBLISH_STATE_MUTEALL) {
         this.room.changeUserProperty(this.teacher.id, TK.MSG_TO_ALLUSER, {
           publishstate: TK.PUBLISH_STATE_AUDIOONLY
         })
@@ -819,12 +861,12 @@ export default {
       }
     },
     closeTeacherAudio () {
-      if (this.teacher.publishstate === TK.PUBLISH_STATE_AUDIOONLY) {
+      if (this.teacher?.publishstate === TK.PUBLISH_STATE_AUDIOONLY) {
         // 如果只发布了视频，则改为禁用全部
         this.room.changeUserProperty(this.teacher.id, TK.MSG_TO_ALLUSER, {
           publishstate: TK.PUBLISH_STATE_MUTEALL
         })
-      } else if (this.teacher.publishstate === TK.PUBLISH_STATE_BOTH) {
+      } else if (this.teacher?.publishstate === TK.PUBLISH_STATE_BOTH) {
         // 如果两者都发布了，则只为只发布音频
         this.room.changeUserProperty(this.teacher.id, TK.MSG_TO_ALLUSER, {
           publishstate: TK.PUBLISH_STATE_VIDEOONLY
@@ -996,6 +1038,16 @@ export default {
           filedata
         })
       })
+    },
+    // 教室时长的计时器
+    getClassDuration () {
+      this.timer = setInterval(() => {
+        this.classDuration = Math.round(Date.now() / 1000) - this.classBeginTime
+      }, 1000)
+    },
+    clearClassDuration () {
+      clearInterval(this.timer)
+      this.timer = null
     }
   }
 }

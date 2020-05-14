@@ -137,7 +137,7 @@
             p.student
               span(v-for="(stu, index) in item.stuList" :key="index") {{stu}}
           .item-btn
-            LxmBtn.teacher-btn(v-if="item.starttime <= Math.round(Date.now()/1000)" @onClick="intoRoom(item)") 进入课程
+            LxmBtn.teacher-btn(v-if="item.starttime <= Math.round(Date.now()/1000)" @onClick="enterRoom(item)") 进入课程
             LxmBtn.teacher-btn(type="disable" v-else) 未开始
       p.no-room(v-else) 暂无课程
   .teacher-ctrl
@@ -177,7 +177,7 @@ export default {
       }
     },
     // 进入教室
-    intoRoom (item) {
+    enterRoom (item) {
       this.$router.push(`/classroom/${item.serial}`)
     },
     // 刷新页面

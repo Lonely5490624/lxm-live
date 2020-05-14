@@ -140,26 +140,26 @@
     .nav-btn(:class="{active: fileType === 'course'}" @click="changeType('course')") 课件库
     .nav-btn(:class="{active: fileType === 'media'}" @click="changeType('media')") 媒体库
   .courseware-content(v-if="fileType === 'course'")
-    .courseware-header
-      .courseware-filter(v-if="!searching" @click.stop="openSearching")
-        i.icon-search.search-btn
-      .courseware-filter(v-if="searching")
-        .filter-searching
-          span.icon-search.search
-          input(type="text" placeholder="请输入搜索内容" v-model="searchWord")
-          span.icon-close.close(@click.stop="closeSearching")
-      .courseware-filter(v-if="!searching" @click="setFilter('time')" :class="{active: filter === 'time'}") 时间
-        .filter-box
-          i.filter-item.filter-up(:class="{on: !sortDown}")
-          i.filter-item.filter-down(:class="{on: sortDown}")
-      .courseware-filter(v-if="!searching" @click="setFilter('type')" :class="{active: filter === 'type'}") 类型
-        .filter-box
-          i.filter-item.filter-up(:class="{on: !sortDown}")
-          i.filter-item.filter-down(:class="{on: sortDown}")
-      .courseware-filter(v-if="!searching" @click="setFilter('name')" :class="{active: filter === 'name'}") 名称
-        .filter-box
-          i.filter-item.filter-up(:class="{on: !sortDown}")
-          i.filter-item.filter-down(:class="{on: sortDown}")
+    //- .courseware-header
+    //-   .courseware-filter(v-if="!searching" @click.stop="openSearching")
+    //-     i.icon-search.search-btn
+    //-   .courseware-filter(v-if="searching")
+    //-     .filter-searching
+    //-       span.icon-search.search
+    //-       input(type="text" placeholder="请输入搜索内容" v-model="searchWord")
+    //-       span.icon-close.close(@click.stop="closeSearching")
+    //-   .courseware-filter(v-if="!searching" @click="setFilter('time')" :class="{active: filter === 'time'}") 时间
+    //-     .filter-box
+    //-       i.filter-item.filter-up(:class="{on: !sortDown}")
+    //-       i.filter-item.filter-down(:class="{on: sortDown}")
+    //-   .courseware-filter(v-if="!searching" @click="setFilter('type')" :class="{active: filter === 'type'}") 类型
+    //-     .filter-box
+    //-       i.filter-item.filter-up(:class="{on: !sortDown}")
+    //-       i.filter-item.filter-down(:class="{on: sortDown}")
+    //-   .courseware-filter(v-if="!searching" @click="setFilter('name')" :class="{active: filter === 'name'}") 名称
+    //-     .filter-box
+    //-       i.filter-item.filter-up(:class="{on: !sortDown}")
+    //-       i.filter-item.filter-down(:class="{on: sortDown}")
     .courseware-files
       .file-header(:class="{open: classFileOpen}" @click="openClassFile")
         span.text 教室文件
@@ -188,26 +188,26 @@
           .item-ctrl
             span.ctrl-show(:class="currentFile && item.fileid === currentFile.fileid ? 'icon-open_eye' : 'icon-close_eye'")
   .courseware-content(v-if="fileType === 'media'")
-    .courseware-header
-      .courseware-filter(v-if="!searching" @click.stop="openSearching")
-        i.icon-search.search-btn
-      .courseware-filter(v-if="searching")
-        .filter-searching
-          span.icon-search.search
-          input(type="text" placeholder="请输入搜索内容" v-model="searchWord")
-          span.icon-close.close(@click.stop="closeSearching")
-      .courseware-filter(v-if="!searching" @click="setFilter('time')" :class="{active: filter === 'time'}") 时间
-        .filter-box
-          i.filter-item.filter-up(:class="{on: !sortDown}")
-          i.filter-item.filter-down(:class="{on: sortDown}")
-      .courseware-filter(v-if="!searching" @click="setFilter('type')" :class="{active: filter === 'type'}") 类型
-        .filter-box
-          i.filter-item.filter-up(:class="{on: !sortDown}")
-          i.filter-item.filter-down(:class="{on: sortDown}")
-      .courseware-filter(v-if="!searching" @click="setFilter('name')" :class="{active: filter === 'name'}") 名称
-        .filter-box
-          i.filter-item.filter-up(:class="{on: !sortDown}")
-          i.filter-item.filter-down(:class="{on: sortDown}")
+    //- .courseware-header
+    //-   .courseware-filter(v-if="!searching" @click.stop="openSearching")
+    //-     i.icon-search.search-btn
+    //-   .courseware-filter(v-if="searching")
+    //-     .filter-searching
+    //-       span.icon-search.search
+    //-       input(type="text" placeholder="请输入搜索内容" v-model="searchWord")
+    //-       span.icon-close.close(@click.stop="closeSearching")
+    //-   .courseware-filter(v-if="!searching" @click="setFilter('time')" :class="{active: filter === 'time'}") 时间
+    //-     .filter-box
+    //-       i.filter-item.filter-up(:class="{on: !sortDown}")
+    //-       i.filter-item.filter-down(:class="{on: sortDown}")
+    //-   .courseware-filter(v-if="!searching" @click="setFilter('type')" :class="{active: filter === 'type'}") 类型
+    //-     .filter-box
+    //-       i.filter-item.filter-up(:class="{on: !sortDown}")
+    //-       i.filter-item.filter-down(:class="{on: sortDown}")
+    //-   .courseware-filter(v-if="!searching" @click="setFilter('name')" :class="{active: filter === 'name'}") 名称
+    //-     .filter-box
+    //-       i.filter-item.filter-up(:class="{on: !sortDown}")
+    //-       i.filter-item.filter-down(:class="{on: sortDown}")
     .courseware-files
       .file-header(:class="{open: classFileOpen}" @click="openClassFile")
         span.text 教室文件

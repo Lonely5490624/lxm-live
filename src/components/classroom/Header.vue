@@ -9,6 +9,11 @@
     display flex
     font-size 18px
     color #ffffff
+    align-items center
+    .header-back
+      margin-right 20px
+      width .5rem
+      height .6rem
     .left-item + .left-item
       margin-left 50px
     .status
@@ -47,23 +52,24 @@
 <template lang="pug">
 .classroom-header
   section.header-left
+    Back.header-back
     .left-item.delay(v-if="classBegin") 网络延时：{{networkStatus && networkStatus.video.currentDelay || 0}}ms
     .left-item.packet(v-if="classBegin") 丢包率：{{networkStatus && networkStatus.video.packetsLostRate || 0}}%
     .left-item.status(v-if="classBegin") 网络状态：{{networkStatus && networkStatus.video.netquality | networkFilter}}
     .left-item.serial 房间号：{{$route.params.serial}}
-    .left-item.duration(v-if="classBegin") 00：00：26
+    .left-item.duration(v-if="classBegin") {{classDuration | formatTime}}
   section.header-right
     .right-ctrl
-      .ctrl-item(:class="{active: openType === 'users'}" @click.stop="setOpenType('users')" rel="users")
+      .ctrl-item(v-if="role === 0" :class="{active: openType === 'users'}" @click.stop="setOpenType('users')" rel="users")
         img.item-img(src="../../assets/images/room_user.png")
         .item-text 花名册
-      .ctrl-item(:class="{active: openType === 'files'}" @click.stop="setOpenType('files')" rel="files")
+      .ctrl-item(v-if="role === 0 && classBegin" :class="{active: openType === 'files'}" @click.stop="setOpenType('files')" rel="files")
         img.item-img(src="../../assets/images/room_course.png")
         .item-text 课件库
-      .ctrl-item(v-if="" :class="{active: openType === 'tools'}" @click.stop="setOpenType('tools')" rel="tools")
+      .ctrl-item(v-if="role === 0 && classBegin" :class="{active: openType === 'tools'}" @click.stop="setOpenType('tools')" rel="tools")
         img.item-img(src="../../assets/images/room_tool.png")
         .item-text 工具箱
-      .ctrl-item(v-if="" :class="{active: openType === 'ctrls'}" @click.stop="setOpenType('ctrls')" rel="ctrls")
+      .ctrl-item(v-if="role === 0 && classBegin" :class="{active: openType === 'ctrls'}" @click.stop="setOpenType('ctrls')" rel="ctrls")
         img.item-img(src="../../assets/images/room_ctrl.png")
         .item-text 全体控制
       .ctrl-item(:class="{active: openType === 'settings'}" @click.stop="setOpenType('settings')" rel="settings")
@@ -72,7 +78,7 @@
     .class-status
       LxmBtn.class-btn(v-if="!classBegin && role === 0" @onClick="beginClass") 上课
       LxmBtn.class-btn(v-if="classBegin && (role === 0 || role === 1)" @onClick="endClass") 下课
-  StuList(v-if="openType === 'users'" :room="room" rel="users")
+  StuList(v-if="openType === 'users'" :room="room" rel="users" :classBegin="classBegin")
   Courseware(v-if="openType === 'files'" :room="room" :currentFile="currentFile" rel="files")
   Tools(v-if="openType === 'tools'" rel="tools" @showTools="data => {$emit('showTools', data);openType = false}")
   Control(v-if="openType === 'ctrls'" rel="ctrls" :students="students" :room="room")
@@ -80,6 +86,7 @@
 </template>
 
 <script>
+import Back from '@/components/common/Back'
 import LxmBtn from '@/components/common/LxmBtn'
 import StuList from '@/components/classroom/StuList'
 import Courseware from '@/components/classroom/Courseware'
@@ -89,6 +96,7 @@ import Setting from '@/components/classroom/Setting'
 
 export default {
   components: {
+    Back,
     LxmBtn,
     StuList,
     Courseware,
@@ -104,7 +112,8 @@ export default {
     files: Array,
     students: Array,
     devices: Object,
-    currentFile: Object
+    currentFile: Object,
+    classDuration: Number
   },
   data () {
     return {
