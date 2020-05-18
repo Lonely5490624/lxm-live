@@ -113,6 +113,12 @@ export default {
     room: Object,
     classBegin: Boolean
   },
+  beforeDestroy () {
+    const raisehandStu = this.$store.state.stu?.stuList?.map(item => item.id)
+    this.room.batchChangeUserProperty(raisehandStu, TK.MSG_TO_ALLUSER, {
+      raisehand: false
+    })
+  },
   methods: {
     // 上台
     upStage (user) {

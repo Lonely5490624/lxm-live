@@ -257,12 +257,39 @@
             height 15px
             background url('../assets/images/yinliangtiao_no.png') left center no-repeat
             background-size 100%
-
+.reward-dom
+  position fixed
+  left 50%
+  top 50%
+  transform translate(-50%, -50%)
+  width 300px
+  height 300px
+  background url('../assets/images/xingxing.png') center no-repeat
+  background-size 100%
+  z-index 999
+  &.active
+    transition all 1.5s ease-in-out
+    width 10px
+    height 10px
 </style>
 
 <template lang="pug">
 .classroom
-  Header(:role="role" :room="room" :classBegin.sync="classBegin" :networkStatus="networkStatus" :files="files" @showTools="showTools" :students="students" :devices="devices" @settinDone="getDevices" :currentFile="currentFile" :classDuration="classDuration")
+  Header(
+    :role="role"
+    :room="room"
+    :classBegin.sync="classBegin"
+    :networkStatus="networkStatus"
+    :files="files"
+    @showTools="showTools"
+    :students="students"
+    :devices="devices"
+    @settinDone="getDevices"
+    :currentFile="currentFile"
+    :classDuration="classDuration"
+    :teacher="teacher"
+    @rewardUserAll="rewardUserAll"
+  )
   .classroom-content
     .class-board
       .class-whiteboard(:style="{height: students.some(item => item.publishstate) ? 'calc(100% - 1.5rem)' : '100%'}")
@@ -315,6 +342,7 @@
               i.middle-btn.icon-btn_mute(v-else @click="teacherOpenStuAudio(item)")
               i.middle-btn.icon-btn_camera(@click="teacherStopStuVideo(item)" v-if="item.publishstate === 2 || item.publishstate === 3")
               i.middle-btn.icon-btn_close-camera(@click="teacherOpenStuVideo(item)" v-else)
+              i.middle-btn.icon-control_quantijiangli(@click="rewardUser(item)")
             .video-bottom
               .bottom-name {{item.nickname}}
               .bottom-voice(v-if="teacher && (item.publishstate === 1 || item.publishstate === 3)")
@@ -340,6 +368,7 @@
             i.icon-btn_mute
       .class-chart
         ChartRoom(:room="room" :students="students" :role="role" :muteAll="muteAll")
+  //- #rewardDom.reward-dom
 </template>
 
 <script>
@@ -411,7 +440,8 @@ export default {
       audioSrc: '',
       classBeginTime: 0,
       timer: null,
-      classDuration: 0
+      classDuration: 0,
+      rewardSenging: false
     }
   },
   computed: {
@@ -561,6 +591,10 @@ export default {
       if (e.message.name === 'LittleWhiteBoard') {
         this.toolsShow.xiaobaibanStu = true
         this.canvasData = e.message.data
+      }
+      // 学生获得奖励事件
+      if (e.message.name === 'SendReward') {
+        this.sendReward(e.message.data?.userId)
       }
     })
     this.room.addEventListener(TK.EVENT_TYPE.roomDelmsg, (e) => {
@@ -1054,6 +1088,54 @@ export default {
     clearClassDuration () {
       clearInterval(this.timer)
       this.timer = null
+    },
+    rewardUser (item) {
+      this.sendReward(item.id)
+      // 发送给教室里其他人
+      this.room.pubMsg({
+        name: 'SendReward',
+        id: 'SendReward',
+        toID: TK.MSG_TO_ALLEXCEPTSENDER,
+        data: JSON.stringify({
+          userId: item.id
+        })
+      })
+    },
+    rewardUserAll () {
+      this.students && this.students.length && this.students.forEach(item => {
+        this.sendReward(item.id)
+        // 发送给教室里其他人
+        this.room.pubMsg({
+          name: 'SendReward',
+          id: 'SendReward',
+          toID: TK.MSG_TO_ALLEXCEPTSENDER,
+          data: JSON.stringify({
+            userId: item.id
+          })
+        })
+      })
+    },
+    sendReward (id) {
+      const videoDom = document.getElementById(`video-${id}`)
+      if (!videoDom) return
+      const rewardDom = document.createElement('div')
+      rewardDom.id = `rewardDom_${id}`
+      rewardDom.classList.add('reward-dom')
+      document.body.appendChild(rewardDom)
+      setTimeout(() => {
+        rewardDom.classList.add('active')
+        const videoDomObj = videoDom.getBoundingClientRect()
+        const left = videoDomObj.left + videoDomObj.width / 2
+        const top = videoDomObj.top + videoDomObj.height / 2
+        rewardDom.style.left = `${left}px`
+        rewardDom.style.top = `${top}px`
+        setTimeout(() => {
+          rewardDom.classList.remove('active')
+          rewardDom.style.left = '50%'
+          rewardDom.style.top = '50%'
+          document.body.removeChild(rewardDom)
+        }, 1500);
+      }, 100);
     }
   }
 }

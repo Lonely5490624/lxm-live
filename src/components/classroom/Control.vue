@@ -24,6 +24,8 @@
       border 1px solid #ffffff
       border-radius 50%
       font-size 20px
+      .icon-control_quantijiangli
+        font-size 30px
     .control-text
       font-size 16px
     & + .control-item
@@ -51,14 +53,18 @@
     .control-icon
       i.icon-user_maikefeng
     .control-text 全体发言
-  .control-item
+  .control-item(v-if="students.length" @click="$emit('rewardUserAll')")
     .control-icon
-      i.icon-btn_fuwei
+      i.icon-control_quantijiangli
     .control-text 全体奖励
-  .control-item
+  .control-item.disabled(v-else)
     .control-icon
-      i.icon-btn_fuwei
-    .control-text 全体复位
+      i.icon-control_quantijiangli
+    .control-text 全体奖励
+  //- .control-item
+  //-   .control-icon
+  //-     i.icon-btn_fuwei
+  //-   .control-text 全体复位
 </template>
 
 <script>

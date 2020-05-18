@@ -26,6 +26,18 @@
     .right-ctrl
       display flex
       height 100%
+      align-items center
+      .raisehand
+        width 106px
+        height 35px
+        line-height 35px
+        font-size 16px
+        color #249767
+        text-align center
+        background url('../../assets/images/raisehand_bg.png') center no-repeat
+        background-size 100%
+        position relative
+        top -12px
       .ctrl-item
         cursor pointer
         text-align center
@@ -55,11 +67,13 @@
     Back.header-back
     .left-item.delay(v-if="classBegin") 网络延时：{{networkStatus && networkStatus.video.currentDelay || 0}}ms
     .left-item.packet(v-if="classBegin") 丢包率：{{networkStatus && networkStatus.video.packetsLostRate || 0}}%
-    .left-item.status(v-if="classBegin") 网络状态：{{networkStatus && networkStatus.video.netquality | networkFilter}}
+    .left-item.status(v-if="classBegin") 网络状态：
+      span {{networkStatus && networkStatus.video.netquality | networkFilter}}
     .left-item.serial 房间号：{{$route.params.serial}}
     .left-item.duration(v-if="classBegin") {{classDuration | formatTime}}
   section.header-right
     .right-ctrl
+      .raisehand(v-if="role === 0 && openType !== 'users' && $store.state.stu.stuList.some(item => item.raisehand)") 有人举手
       .ctrl-item(v-if="role === 0" :class="{active: openType === 'users'}" @click.stop="setOpenType('users')" rel="users")
         img.item-img(src="../../assets/images/room_user.png")
         .item-text 花名册
@@ -78,10 +92,12 @@
     .class-status
       LxmBtn.class-btn(v-if="!classBegin && role === 0" @onClick="beginClass") 上课
       LxmBtn.class-btn(v-if="classBegin && (role === 0 || role === 1)" @onClick="endClass") 下课
+      LxmBtn.class-btn(v-if="classBegin && role === 2 && !mySelf.raisehand" @onClick="raiseHand(true)") 举手
+      LxmBtn.class-btn(v-if="classBegin && role === 2 && mySelf.raisehand" @onClick="raiseHand(false)") 取消
   StuList(v-if="openType === 'users'" :room="room" rel="users" :classBegin="classBegin")
   Courseware(v-if="openType === 'files'" :room="room" :currentFile="currentFile" rel="files")
   Tools(v-if="openType === 'tools'" rel="tools" @showTools="data => {$emit('showTools', data);openType = false}")
-  Control(v-if="openType === 'ctrls'" rel="ctrls" :students="students" :room="room")
+  Control(v-if="openType === 'ctrls'" rel="ctrls" :students="students" :room="room" @rewardUserAll="$emit('rewardUserAll')")
   Setting(v-if="openType === 'settings'" rel="settings" @close="openType = ''" :devices="devices" :room="room" @done="$emit('settinDone')")
 </template>
 
@@ -113,11 +129,13 @@ export default {
     students: Array,
     devices: Object,
     currentFile: Object,
-    classDuration: Number
+    classDuration: Number,
+    teacher: Object
   },
   data () {
     return {
-      openType: ''
+      openType: '',
+      mySelf: {}
     }
   },
   mounted () {
@@ -126,6 +144,15 @@ export default {
       if (type === 'settings') return
       if (!document.querySelectorAll(`[rel="${type}"]`)[1]?.contains(e.target)) {
         this.openType = ''
+      }
+    })
+    this.room.addEventListener(TK.EVENT_TYPE.roomConnected, () => {
+      this.mySelf = this.room.getMySelf()
+    })
+    this.room.addEventListener(TK.EVENT_TYPE.roomUserPropertyChanged, e => {
+      // 如果修改信息为举手且修改人为本人
+      if (e.message?.hasOwnProperty('raisehand') && e.userId === this.mySelf?.id) {
+        this.$set(this.mySelf, 'raisehand', e.message.raisehand)
       }
     })
   },
@@ -154,6 +181,13 @@ export default {
         toID: TK.MSG_TO_ALLUSER,
         save: true
       })
+    },
+    // 举手
+    raiseHand (bool) {
+      this.room.changeUserProperty(this.room.getMySelf().id, this.teacher.id, {
+        raisehand: bool
+      })
+      this.$set(this.mySelf, 'raisehand', bool)
     }
   }
 }
