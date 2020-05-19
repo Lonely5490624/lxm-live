@@ -831,7 +831,7 @@ export default {
     },
     // 加入房间
     joinRoom () {
-      this.room.joinroom('global.talk-cloud.net', '443', localStorage.getItem('name'), localStorage.getItem('name'), {
+      this.room.joinroom('global.talk-cloud.net', '443', localStorage.getItem('name'), localStorage.getItem('uid'), {
         serial: this.$route.params.serial,
         password: this.role === 0 ? '1314' : '4344'
       })
@@ -1106,6 +1106,13 @@ export default {
           userId: item.id
         })
       })
+      // 提交到后台
+      this.$axios.post('stu/addIntegral', {
+        uid: item.id,
+        value: 10,
+        source: 1,
+        serial: this.$route.params.serial
+      })
     },
     rewardUserAll () {
       this.students && this.students.length && this.students.forEach(item => {
@@ -1119,9 +1126,16 @@ export default {
             userId: item.id
           })
         })
+        // 提交到后台
+        this.$axios.post('stu/addIntegral', {
+          uid: item.id,
+          value: 10,
+          source: 1,
+          serial: this.$route.params.serial
+        })
       })
     },
-    sendReward (id) {
+    async sendReward (id) {
       const videoDom = document.getElementById(`video-${id}`)
       if (!videoDom) return
       const rewardDom = document.createElement('div')

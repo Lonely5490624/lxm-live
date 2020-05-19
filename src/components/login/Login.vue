@@ -97,6 +97,8 @@ export default {
         this.logining = false
         localStorage.setItem('token', res.data.token)
         localStorage.setItem('role', res.data.role)
+        localStorage.setItem('name', res.data.username)
+        localStorage.setItem('uid', res.data.uid)
         if (res.data.role === 2) {
           this.$router.replace('/stu/home')
         } else {
