@@ -526,6 +526,8 @@ export default {
         this.classBegin = true
         this.room.publishVideo()
         this.getUsers()
+        // 录制屏幕
+        if (window.startCapturer) window.startCapturer()
       }
       // 答题器事件
       if (e?.message.name === 'Question') {
@@ -611,6 +613,8 @@ export default {
         this.room.batchChangeUserProperty(ids, TK.MSG_TO_ALLUSER, {
           publishstate: 0
         })
+        // 停止录制屏幕
+        if (window.stopCapturer) window.stopCapturer()
       }
       // 取消共享视频文件
       if (e.message.name === 'ShareVideo') {

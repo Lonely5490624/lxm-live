@@ -148,6 +148,9 @@
       router-link(to="/setting")
         img(src="../../assets/images/setting.png")
         p 设置
+    .ctrl-btn(@click="handleLogout")
+      img(src="../../assets/images/logout.png")
+      p 退出
 </template>
 
 <script>
@@ -187,6 +190,14 @@ export default {
         this.getRoomList()
       ])
       this.loading = false
+    },
+    // 退出登录
+    async handleLogout () {
+      const res = await this.$axios.post('logout')
+      if (res.code === 200) {
+        localStorage.removeItem('token')
+        this.$router.replace('/')
+      }
     }
   }
 }
