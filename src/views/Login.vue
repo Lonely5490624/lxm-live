@@ -81,7 +81,7 @@ export default {
   },
   data () {
     return {
-      currentCom: 'findPwd'
+      currentCom: 'login'
     }
   },
   methods: {
