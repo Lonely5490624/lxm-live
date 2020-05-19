@@ -64,7 +64,7 @@
     .item-ele 选择了“不可以看到波动”
   .device-ctrl
     LxmBtn.device-btn(type="cancel" @onClick="$emit('reset')") 重新检测
-    LxmBtn.device-btn 进入房间
+    LxmBtn.device-btn(@onClick="$router.back()") 检测完成
 </template>
 
 <script>
