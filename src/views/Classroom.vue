@@ -358,7 +358,7 @@
           i.middle-btn.icon-btn_mute(v-else @click="openTeacherAudio")
           i.middle-btn.icon-btn_camera(@click="closeVideo" v-if="teacher.publishstate === 2 || teacher.publishstate === 3")
           i.middle-btn.icon-btn_close-camera(@click="openVideo" v-else)
-          i.middle-btn.icon-btn_fuwei
+          //- i.middle-btn.icon-btn_fuwei
         .video-bottom
           .bottom-name {{teacher && teacher.nickname}}
           .bottom-voice(v-if="teacher && (teacher.publishstate === 1 || teacher.publishstate === 3)")
@@ -462,6 +462,7 @@ export default {
     console.log('classroom beforemount')
     this.role = +localStorage.getItem('role')
     this.room = TK.Room()
+    window.room = this.room
     // 房间连接事件
     this.room.addEventListener(TK.EVENT_TYPE.roomConnected, (e) => {
       console.log('房间连接成功2222', e)
@@ -605,6 +606,11 @@ export default {
         this.getUsers()
         this.$message.error('课程已结束')
         // this.$router.back()
+        // 修改所有学生的视频状态
+        const ids = this.students.map(item => item.id)
+        this.room.batchChangeUserProperty(ids, TK.MSG_TO_ALLUSER, {
+          publishstate: 0
+        })
       }
       // 取消共享视频文件
       if (e.message.name === 'ShareVideo') {
