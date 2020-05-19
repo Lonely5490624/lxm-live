@@ -815,7 +815,13 @@ export default {
       TK.EVENT_TYPE.roomUserMediaStateChanged,
       TK.EVENT_TYPE.roomParticipantEvicted
     ])
+    // const myVideoDom = this.$el.querySelector(`video#videoplaystream_${localStorage.getItem('uid')}`)
+    // myVideoDom.srcObject.getTracks().forEach(track => {
+    //   track.stop()
+    // })
     this.room.leaveroom()
+    // 停止录制屏幕
+    if (window.stopCapturer) window.stopCapturer()
   },
   methods: {
     // 初始化房间
