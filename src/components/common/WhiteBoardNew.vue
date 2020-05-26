@@ -19,6 +19,9 @@
       height 40px
       line-height 40px
       cursor pointer
+      i
+        font-size 24px
+        vertical-align middle
       &.active
         background-color $them
       &.disabled
@@ -149,7 +152,16 @@
               :max="20"
               :show-tooltip="false"
             )
-    canvas#lxmWhiteBoard(ref="canvasRef" :width="width" :height="height" @mousedown="canvasMouseDown" @mousemove="canvasMouseMove" @mouseup="canvasMouseUp")
+    canvas#lxmWhiteBoard(
+      ref="canvasRef"
+      :width="width"
+      :height="height"
+      @mousedown="canvasMouseDown"
+      @mousemove="canvasMouseMove"
+      @mouseup="canvasMouseUp"
+      @touchstart="touchStart"
+      @touchmove="touchMove"
+      @touchend="touchEnd")
     .overflow(v-if="(this.role === 2 && !candraw) || this.role === 1")
 </template>
 
@@ -375,6 +387,118 @@ export default {
       }
     },
     canvasMouseUp() {
+      this.isDraw = false
+      switch (this.tool) {
+        case 'pencil':
+          // 如果当前路径有值，才加到allPath里面
+          if (this.curPath.length > 1) {
+            this.allPath.push({
+              type: 'pencil',
+              style: JSON.parse(JSON.stringify(this.style)),
+              path: this.curPath
+            })
+            this.curPath = []
+          }
+          break;
+        case 'line':
+        case 'rect':
+          if (!this.allPath[this.allPath.length - 1]['path'].length) {
+            this.allPath.splice(this.allPath.length - 1)
+          }
+          break
+        case 'eraser':
+          if (this.eraserPath.length > 1) {
+            this.allPath.push({
+              type: 'eraser',
+              style: JSON.parse(JSON.stringify(this.style)),
+              path: this.eraserPath
+            })
+            this.eraserPath = []
+          }
+          break
+        default:
+          break
+      }
+      // 如果allPath里面的path没有值，直接删除，避免出现空的情况
+      if (this.allPath[this.allPath.length - 1] && this.allPath[this.allPath.length - 1]['path'] && !this.allPath[this.allPath.length - 1]['path'].length) {
+        this.allPath.splice(this.allPath.length - 1)
+      }
+      this.isClear = false
+      // 每次绘制需要清空撤销的数组
+      this.undoArray = []
+      this.sendCanvas()
+    },
+    touchStart (e) {
+      this.isDraw = true
+      const x = e.touches[0].clientX - this.$refs.canvasRef.getBoundingClientRect().left
+      const y = e.touches[0].clientY - this.$refs.canvasRef.getBoundingClientRect().top
+      this.oldPoint.x = x
+      this.oldPoint.y = y
+      switch (this.tool) {
+        case 'line':
+          this.allPath.push({
+            type: 'line',
+            style: JSON.parse(JSON.stringify(this.style)),
+            path: []
+          })
+          break
+        case 'rect':
+          this.allPath.push({
+            type: 'rect',
+            style: JSON.parse(JSON.stringify(this.style)),
+            path: []
+          })
+          break
+        default:
+          break
+      }
+    },
+    touchMove (e) {
+      this.ctx.lineCap = 'round'
+      if (this.isDraw) {
+        const x = e.touches[0].clientX - this.$refs.canvasRef.getBoundingClientRect().left
+        const y = e.touches[0].clientY - this.$refs.canvasRef.getBoundingClientRect().top
+        if (x === this.oldPoint.x && y === this.oldPoint.y) return
+        /**
+         * @todo 鼠标移出canvas区域取消绘制
+         */
+        this.style.globalCompositeOperation = 'source-over'
+        switch (this.tool) {
+          case 'pencil':
+            // 画线不需要repaint，所以在这里设置样式
+            this.ctx.strokeStyle = this.style.strokeStyle
+            this.ctx.lineWidth = this.style.lineWidth
+            this.ctx.globalCompositeOperation = this.style.globalCompositeOperation
+            this.drawPencil(this.oldPoint.x, this.oldPoint.y, x, y)
+            // push进去时，需要先除比例，避免位移偏
+            this.curPath.push([x / this.ratio, y / this.ratio])
+            this.oldPoint.x = x
+            this.oldPoint.y = y
+            break
+          case 'line':
+            this.allPath[this.allPath.length - 1]['path'] = [this.oldPoint.x / this.ratio, this.oldPoint.y / this.ratio, x / this.ratio, y / this.ratio]
+            this.repaint()
+            break
+          case 'rect':
+            this.allPath[this.allPath.length - 1]['path'] = [this.oldPoint.x / this.ratio, this.oldPoint.y / this.ratio, x / this.ratio, y / this.ratio]
+            this.repaint()
+            break
+          case 'eraser':
+            this.style.globalCompositeOperation = 'destination-out'
+            this.ctx.globalCompositeOperation = this.style.globalCompositeOperation
+            this.ctx.strokeStyle = this.style.strokeStyle
+            this.ctx.lineWidth = this.style.lineWidth
+            this.drawEraser(this.oldPoint.x, this.oldPoint.y, x, y)
+            this.eraserPath.push([x / this.ratio, y / this.ratio])
+            this.oldPoint.x = x
+            this.oldPoint.y = y
+            break
+          default:
+            break
+        }
+      }
+    },
+    touchEnd() {
       this.isDraw = false
       switch (this.tool) {
         case 'pencil':

@@ -174,7 +174,16 @@ export default {
   methods: {
     // 获取教师课程列表
     async getRoomList () {
-      const res = await this.$axios.get('user/getTeacherRoomList')
+      const role = localStorage.getItem('role')
+      let url
+      if (role === '0') {
+        url = 'user/getTeacherRoomList'
+      } else if (role === '1') {
+        url = 'user/getAssistantRoomList'
+      } else {
+        return
+      }
+      const res = await this.$axios.get(url)
       if (res.code === 200) {
         this.roomList = res.data
       }

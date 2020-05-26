@@ -850,13 +850,13 @@ export default {
           password = '2324'
           break
         case 2:
-          password = '3334'
-          break
-        case 4:
           password = '4344'
           break
-        default:
+        case 4:
           password = '3334'
+          break
+        default:
+          password = '4344'
           break
       }
       this.room.joinroom('global.talk-cloud.net', '443', localStorage.getItem('name'), localStorage.getItem('uid'), {
