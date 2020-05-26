@@ -73,24 +73,24 @@
     .left-item.duration(v-if="classBegin") {{classDuration | formatTime}}
   section.header-right
     .right-ctrl
-      .raisehand(v-if="role === 0 && openType !== 'users' && $store.state.stu.stuList.some(item => item.raisehand)") 有人举手
-      .ctrl-item(v-if="role === 0" :class="{active: openType === 'users'}" @click.stop="setOpenType('users')" rel="users")
+      .raisehand(v-if="(role === 0 || role === 1) && openType !== 'users' && $store.state.stu.stuList.some(item => item.raisehand)") 有人举手
+      .ctrl-item(v-if="(role === 0 || role === 1)" :class="{active: openType === 'users'}" @click.stop="setOpenType('users')" rel="users")
         img.item-img(src="../../assets/images/room_user.png")
         .item-text 花名册
-      .ctrl-item(v-if="role === 0 && classBegin" :class="{active: openType === 'files'}" @click.stop="setOpenType('files')" rel="files")
+      .ctrl-item(v-if="(role === 0 || role === 1) && classBegin" :class="{active: openType === 'files'}" @click.stop="setOpenType('files')" rel="files")
         img.item-img(src="../../assets/images/room_course.png")
         .item-text 课件库
-      .ctrl-item(v-if="role === 0 && classBegin" :class="{active: openType === 'tools'}" @click.stop="setOpenType('tools')" rel="tools")
+      .ctrl-item(v-if="(role === 0 || role === 1) && classBegin" :class="{active: openType === 'tools'}" @click.stop="setOpenType('tools')" rel="tools")
         img.item-img(src="../../assets/images/room_tool.png")
         .item-text 工具箱
-      .ctrl-item(v-if="role === 0 && classBegin" :class="{active: openType === 'ctrls'}" @click.stop="setOpenType('ctrls')" rel="ctrls")
+      .ctrl-item(v-if="(role === 0 || role === 1) && classBegin" :class="{active: openType === 'ctrls'}" @click.stop="setOpenType('ctrls')" rel="ctrls")
         img.item-img(src="../../assets/images/room_ctrl.png")
         .item-text 全体控制
       .ctrl-item(:class="{active: openType === 'settings'}" @click.stop="setOpenType('settings')" rel="settings")
         img.item-img(src="../../assets/images/room_set.png")
         .item-text 设置
     .class-status
-      LxmBtn.class-btn(v-if="!classBegin && role === 0" @onClick="beginClass") 上课
+      LxmBtn.class-btn(v-if="!classBegin && (role === 0 || role === 1)" @onClick="beginClass") 上课
       LxmBtn.class-btn(v-if="classBegin && (role === 0 || role === 1)" @onClick="endClass") 下课
       LxmBtn.class-btn(v-if="classBegin && role === 2 && !mySelf.raisehand" @onClick="raiseHand(true)") 举手
       LxmBtn.class-btn(v-if="classBegin && role === 2 && mySelf.raisehand" @onClick="raiseHand(false)") 取消

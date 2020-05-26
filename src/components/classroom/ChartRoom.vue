@@ -131,10 +131,10 @@
 <template lang="pug">
 .chart-room
   .chart-header
-    .header-ban(v-if="role === 0 && !muteAll" @click="handleMuteAll")
+    .header-ban(v-if="(role === 0 || role === 1) && !muteAll" @click="handleMuteAll")
       i.icon-quantijinyan
       span 全体禁言
-    .header-ban(v-if="role === 0 && muteAll" @click="handleCancelMuteAll")
+    .header-ban(v-if="(role === 0 || role === 1) && muteAll" @click="handleCancelMuteAll")
       i.icon-quantijinyan
       span 解除禁言
     .header-title 聊天

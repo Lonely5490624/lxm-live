@@ -28,8 +28,8 @@
     :src="src"
     ref="audioRef"
   )
-  .audio-cover(v-if="role !== 0")
-  Close.audio-close(v-if="role === 0" @onClose="closeAudio")
+  .audio-cover(v-if="role !== 0 && role !== 1")
+  Close.audio-close(v-if="role === 0 || role === 1" @onClose="closeAudio")
 </template>
 
 <script>
@@ -47,7 +47,7 @@ export default {
   mounted () {
     const audio = this.$refs.audioRef
     // 监听老师端对视频的操控事件 
-    if (this.role === 0) {
+    if (this.role === 0 || this.role === 1) {
       audio.addEventListener('play', () => {
         this.room.pubMsg({
           name: 'PlayAudio',

@@ -150,7 +150,7 @@
               :show-tooltip="false"
             )
     canvas#lxmWhiteBoard(ref="canvasRef" :width="width" :height="height" @mousedown="canvasMouseDown" @mousemove="canvasMouseMove" @mouseup="canvasMouseUp")
-    .overflow(v-if="this.role === 2 && !candraw")
+    .overflow(v-if="(this.role === 2 && !candraw) || this.role === 1")
 </template>
 
 <script>

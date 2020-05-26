@@ -33,8 +33,8 @@
     ref="videoRef"
   )
     source(type="video/webm" :src="src")
-  .video-cover(v-if="role !== 0")
-  Close.video-close(v-if="role === 0" @onClose="closeVideo")
+  .video-cover(v-if="role !== 0 && role !== 1")
+  Close.video-close(v-if="(role === 0 || role === 1)" @onClose="closeVideo")
 </template>
 
 <script>
@@ -52,7 +52,7 @@ export default {
   mounted () {
     const video = this.$refs.videoRef
     // 监听老师端对视频的操控事件 
-    if (this.role === 0) {
+    if (this.role === 0 || this.role === 1) {
       video.addEventListener('play', () => {
         this.room.pubMsg({
           name: 'PlayVideo',

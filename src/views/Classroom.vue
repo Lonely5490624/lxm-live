@@ -295,16 +295,16 @@
       .class-whiteboard(:style="{height: students.some(item => item.publishstate) ? 'calc(100% - 1.5rem)' : '100%'}")
         //- #lxmWhiteBoard.lxm-whiteboard
         WhiteBoard(:room="room" :role="role")
-        Datiqi(v-if="role === 0 && toolsShow.datiqi" :room="room" @onClose="closeTools")
-        DatiqiStu(v-if="role === 2 && toolsShow.datiqiStu" :room="room" :answerList="answerList" :teacher="teacher")
+        Datiqi(v-if="(role === 0 || role === 1) && toolsShow.datiqi" :room="room" @onClose="closeTools")
+        DatiqiStu(v-if="(role === 0 || role === 1) && toolsShow.datiqiStu" :room="room" :answerList="answerList" :teacher="teacher")
         Jishiqi(v-if="role === 0 && toolsShow.jishiqi" :room="room" @onClose="closeTools")
-        JishiqiStu(v-show="role === 2 && toolsShow.jishiqiStu" :room="room")
+        JishiqiStu(v-show="(role === 0 || role === 1) && toolsShow.jishiqiStu" :room="room")
         Qiangdaqi(v-if="role === 0 && toolsShow.qiangdaqi" :room="room" @onClose="closeTools")
-        QiangdaqiStu(v-if="role === 2 && toolsShow.qiangdaqiStu" :room="room")
+        QiangdaqiStu(v-if="(role === 0 || role === 1) && toolsShow.qiangdaqiStu" :room="room")
         Zhuanpan(v-if="role === 0 && toolsShow.zhuanpan" :room="room" @onClose="closeTools")
-        ZhuanpanStu(v-if="role === 2 && toolsShow.zhuanpanStu" :room="room")
+        ZhuanpanStu(v-if="(role === 0 || role === 1) && toolsShow.zhuanpanStu" :room="room")
         LittleWhiteBoard(v-if="role === 0 && toolsShow.xiaobaiban" :room="room" :role="role" @onClose="closeTools")
-        LittleWhiteBoardStu(v-if="role === 2 && toolsShow.xiaobaibanStu" :room="room" :role="role" :canvasData="canvasData")
+        LittleWhiteBoardStu(v-if="(role === 0 || role === 1) && toolsShow.xiaobaibanStu" :room="room" :role="role" :canvasData="canvasData")
         .class-file-show(v-if="Object.keys(currentFile).length")
           .file-png(v-if="currentFile && ['png', 'txt', 'pdf'].includes(currentFile.filetype)" :style="`background-image: url('https://doccdn.talk-cloud.net${currentFile.swfpath.replace(/\.(png|jpg)$/, '-'+currpage+'.$1')}')`")
           WhiteBoard(
@@ -319,7 +319,7 @@
         VideoPlayer(v-if="videoSrc" :room="room" :role="role" :src="videoSrc" @close="videoSrc = ''")
         AudioPlayer(v-if="audioSrc" :room="room" :role="role" :src="audioSrc" @close="audioSrc = ''")
         #classMediaBox.class-media-box
-        .class-file-control(v-if="role === 0")
+        .class-file-control(v-if="(role === 0 || role === 1)")
           .page-btn.prev-page(@click="changePage('prev')" :class="{disabled: currpage === 1}")
           .page-jump
             input.page-cur(:value="currpage" :readonly="!Object.keys(currentFile).length" @blur="jumpPage" @keyup.enter="jumpPage")
@@ -336,7 +336,7 @@
       #stu-videos.class-stu-videos(ref="stuVideoList")
         template(v-for="item in students")
           .stu-video(:key="item.id" :id="`video-${item.id}`" v-if="item.publishstate")
-            .video-hover(v-if="role === 0")
+            .video-hover(v-if="(role === 0 || role === 1)")
               i.middle-btn.icon-btn_shangtai(@click="downStage(item)")
               i.middle-btn.icon-btn_audio(@click="teacherStopStuAudio(item)" v-if="item.publishstate === 1 || item.publishstate === 3")
               i.middle-btn.icon-btn_mute(v-else @click="teacherOpenStuAudio(item)")
@@ -353,7 +353,7 @@
     .class-info
       #teacher-video.class-video
         //- @todo 将老师的操作设置成上课后才能操作
-        .teacher-video-hover(v-if="role === 0 && teacher")
+        .teacher-video-hover(v-if="(role === 0 || role === 1) && teacher")
           i.middle-btn.icon-btn_audio(@click="closeTeacherAudio" v-if="teacher.publishstate === 1 || teacher.publishstate === 3")
           i.middle-btn.icon-btn_mute(v-else @click="openTeacherAudio")
           i.middle-btn.icon-btn_camera(@click="closeVideo" v-if="teacher.publishstate === 2 || teacher.publishstate === 3")
@@ -841,12 +841,30 @@ export default {
     },
     // 加入房间
     joinRoom () {
+      let password
+      switch (this.role) {
+        case 0:
+          password = '1314'
+          break
+        case 1:
+          password = '2324'
+          break
+        case 2:
+          password = '3334'
+          break
+        case 4:
+          password = '4344'
+          break
+        default:
+          password = '3334'
+          break
+      }
       this.room.joinroom('global.talk-cloud.net', '443', localStorage.getItem('name'), localStorage.getItem('uid'), {
         serial: this.$route.params.serial,
-        password: this.role === 0 ? '1314' : '4344'
+        password
       })
       this.myInfo = this.room.getMySelf()
-      if (this.role === 0) {
+      if (this.role === 0 || this.role === 1) {
         this.playTeacherVideo()
       }
       // 初始化白板
