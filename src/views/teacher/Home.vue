@@ -137,7 +137,7 @@
             p.student
               span(v-for="(stu, index) in item.stuList" :key="index") {{stu}}
           .item-btn
-            LxmBtn.teacher-btn(v-if="item.starttime <= Math.round(Date.now()/1000)" @onClick="enterRoom(item)") 进入课程
+            LxmBtn.teacher-btn(v-if="item.starttime - (item.ready_time * 60) <= Math.round(Date.now()/1000)" @onClick="enterRoom(item)") 进入课程
             LxmBtn.teacher-btn(type="disable" v-else) 未开始
       p.no-room(v-else) 暂无课程
   .teacher-ctrl

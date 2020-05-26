@@ -423,7 +423,7 @@
                 | {{item.endtime | formatDatetimeNoSecond}}
               .item-teacher {{item.teacher_name}}
               .item-btn
-                LxmBtn.btn-start(v-if="item.starttime <= Math.round(Date.now()/1000)" @onClick="enterRoom(item)") 进入课程
+                LxmBtn.btn-start(v-if="item.starttime - (item.ready_time * 60) <= Math.round(Date.now()/1000)" @onClick="enterRoom(item)") 进入课程
                 LxmBtn.btn-start(v-else type="disable") 未开始
       //- .room-content.unsign
       //-   .room-title
