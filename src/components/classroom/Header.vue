@@ -172,6 +172,10 @@ export default {
         toID: TK.MSG_TO_ALLUSER,
         save: true
       })
+      const params = {
+        serial: this.$route.params.serial
+      }
+      this.$axios.post('room/teach_start', params)
     },
     // 下课
     endClass () {
@@ -181,6 +185,10 @@ export default {
         toID: TK.MSG_TO_ALLUSER,
         save: true
       })
+      const params = {
+        serial: this.$route.params.serial
+      }
+      this.$axios.post('room/teach_end', params)
     },
     // 举手
     raiseHand (bool) {
