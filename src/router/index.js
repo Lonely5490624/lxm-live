@@ -30,6 +30,10 @@ export const routes = [
     component: Login,
     beforeEnter (to, from, next) {
       // 如果存在token，则跳转到首页
+      // localStorage.setItem('role', 2)
+      // localStorage.setItem('token', 'sahdflsadfoiu121212')
+      // localStorage.setItem('name', '测试专用名')
+      // next('/classroom/522315608')
       if (localStorage.getItem('token') && localStorage.getItem('role')) {
         // eslint-disable-next-line eqeqeq
         if (localStorage.getItem('role') == 2) {

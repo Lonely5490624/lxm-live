@@ -296,17 +296,17 @@
         //- #lxmWhiteBoard.lxm-whiteboard
         WhiteBoard(:room="room" :role="role")
         Datiqi(v-if="(role === 0 || role === 1) && toolsShow.datiqi" :room="room" @onClose="closeTools")
-        DatiqiStu(v-if="(role === 0 || role === 1) && toolsShow.datiqiStu" :room="room" :answerList="answerList" :teacher="teacher")
-        Jishiqi(v-if="role === 0 && toolsShow.jishiqi" :room="room" @onClose="closeTools")
-        JishiqiStu(v-show="(role === 0 || role === 1) && toolsShow.jishiqiStu" :room="room")
-        Qiangdaqi(v-if="role === 0 && toolsShow.qiangdaqi" :room="room" @onClose="closeTools")
-        QiangdaqiStu(v-if="(role === 0 || role === 1) && toolsShow.qiangdaqiStu" :room="room")
-        Zhuanpan(v-if="role === 0 && toolsShow.zhuanpan" :room="room" @onClose="closeTools")
-        ZhuanpanStu(v-if="(role === 0 || role === 1) && toolsShow.zhuanpanStu" :room="room")
-        LittleWhiteBoard(v-if="role === 0 && toolsShow.xiaobaiban" :room="room" :role="role" @onClose="closeTools")
-        LittleWhiteBoardStu(v-if="(role === 0 || role === 1) && toolsShow.xiaobaibanStu" :room="room" :role="role" :canvasData="canvasData")
+        DatiqiStu(v-if="role === 2 && toolsShow.datiqiStu" :room="room" :answerList="answerList" :teacher="teacher")
+        Jishiqi(v-if="(role === 0 || role === 1) && toolsShow.jishiqi" :room="room" @onClose="closeTools")
+        JishiqiStu(v-show="role === 2 && toolsShow.jishiqiStu" :room="room")
+        Qiangdaqi(v-if="(role === 0 || role === 1) && toolsShow.qiangdaqi" :room="room" @onClose="closeTools")
+        QiangdaqiStu(v-if="role === 2 && toolsShow.qiangdaqiStu" :room="room")
+        Zhuanpan(v-if="(role === 0 || role === 1) && toolsShow.zhuanpan" :room="room" @onClose="closeTools")
+        ZhuanpanStu(v-if="role === 2 && toolsShow.zhuanpanStu" :room="room")
+        LittleWhiteBoard(v-if="(role === 0 || role === 1) && toolsShow.xiaobaiban" :room="room" :role="role" @onClose="closeTools")
+        LittleWhiteBoardStu(v-if="role === 2 && toolsShow.xiaobaibanStu" :room="room" :role="role" :canvasData="canvasData")
         .class-file-show(v-if="Object.keys(currentFile).length")
-          .file-png(v-if="currentFile && ['png', 'txt', 'pdf'].includes(currentFile.filetype)" :style="`background-image: url('https://doccdn.talk-cloud.net${currentFile.swfpath.replace(/\.(png|jpg)$/, '-'+currpage+'.$1')}')`")
+          .file-png(v-if="currentFile && typeList.includes(currentFile.filetype)" :style="`background-image: url('https://doccdn.talk-cloud.net${currentFile.swfpath.replace(/\.(png|jpg)$/, '-'+currpage+'.$1')}')`")
           WhiteBoard(
             :room="room"
             :role="role"
@@ -388,6 +388,8 @@ import AudioPlayer from '@/components/classroom/AudioPlayer'
 import LittleWhiteBoard from '@/components/tools/LittleWhiteBoard'
 import LittleWhiteBoardStu from '@/components/tools/LittleWhiteBoardStu'
 
+const typeList = ['png', 'txt', 'pdf', 'ppt', 'pptx', 'doc', 'docx', 'xls', 'xlsx', 'jpg', 'jpeg', 'gif', 'bmp']
+
 export default {
   components: {
     Header,
@@ -408,6 +410,7 @@ export default {
   },
   data () {
     return {
+      typeList,
       role: 0,
       room: null,
       dispatcher: null,
@@ -763,6 +766,15 @@ export default {
         } else {
           this.room.unregisterAudioVolumeListener(this.teacher.id)
         }
+      }
+      if (e.message.published) {
+        this.room.playAudio(e.message.userId, (err) => {
+          console.log('播放音频失败', err)
+        })
+      } else {
+        this.room.unplayAudio(e.message.userId, (err) => {
+          console.log('停止播放音频失败', err)
+        })
       }
     })
     // 监听设备变化

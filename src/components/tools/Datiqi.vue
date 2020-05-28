@@ -1,7 +1,7 @@
 <style lang="stylus" scoped>
 .datiqi-box
   width 510px
-  background-color #fff
+  background-color #eee
   border-radius 20px
   position absolute
   top 50%

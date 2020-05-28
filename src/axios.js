@@ -3,7 +3,7 @@ import { Message } from 'element-ui'
 
 const url = {
   development: 'http://192.168.3.128:3333/',
-  production: 'http://192.168.3.128:3333/'
+  production: 'http://lxmliveapi.zksyai.com/'
 }
 
 const baseUrl = url[process.env.NODE_ENV]

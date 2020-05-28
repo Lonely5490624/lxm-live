@@ -5,14 +5,14 @@
   right 180px
   width 385px
   height 232px
-  padding 15px 25px 0 15px
+  padding 15px 30px 0 30px
   z-index 99
   border 2px solid $roomDeepGreen
   background-color #1E9464
   border-radius 20px
   display flex
   flex-wrap wrap
-  justify-content space-around
+  justify-content space-between
   .tool-item
     width 140px
     height 42px
@@ -56,10 +56,10 @@
     .item-icon
       i.icon-hold_qingdaqi
     .item-text 抢答器
-  .tool-item
-    .item-icon
-      i.icon-hold_table_share
-    .item-text 屏幕共享
+  //- .tool-item
+  //-   .item-icon
+  //-     i.icon-hold_table_share
+  //-   .item-text 屏幕共享
   .tool-item(@click="$emit('showTools', 'xiaobaiban')")
     .item-icon
       i.icon-hold_xiaobaiban
