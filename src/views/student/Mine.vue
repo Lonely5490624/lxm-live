@@ -151,7 +151,7 @@ input.user-truename
           .box-item.large
             .label.small 头像
             .value.avatar
-              img(:src="userInfo ? userInfo.avatar : avatar")
+              img(:src="userInfo && userInfo.avatar ? userInfo.avatar : avatar")
             .ctrl(@click="openInput") 更换
             input(type="file" style="display: none;" ref="avatarRef" @change="uploadAvatar")
           .box-item
