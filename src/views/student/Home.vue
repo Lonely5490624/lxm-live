@@ -396,7 +396,7 @@
     .user-content
       .user-avatar
         .avatar-box
-          img(:src="userInfo ? userInfo.avatar : avatar")
+          img(:src="userInfo && userInfo.avatar ? userInfo.avatar : avatar")
       .user-info
         .info-name 你好，{{userInfo ? userInfo.truename : '学员'}}
         .info-integral {{integralAll}}
