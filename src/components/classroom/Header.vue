@@ -80,7 +80,7 @@
       .ctrl-item(v-if="(role === 0 || role === 1) && classBegin" :class="{active: openType === 'files'}" @click.stop="setOpenType('files')" rel="files")
         img.item-img(src="../../assets/images/room_course.png")
         .item-text 课件库
-      .ctrl-item(v-if="(role === 0 || role === 1)" :class="{active: openType === 'tools'}" @click.stop="setOpenType('tools')" rel="tools")
+      .ctrl-item(v-if="(role === 0 || role === 1 && classBegin)" :class="{active: openType === 'tools'}" @click.stop="setOpenType('tools')" rel="tools")
         img.item-img(src="../../assets/images/room_tool.png")
         .item-text 工具箱
       .ctrl-item(v-if="(role === 0 || role === 1) && classBegin" :class="{active: openType === 'ctrls'}" @click.stop="setOpenType('ctrls')" rel="ctrls")
