@@ -182,7 +182,7 @@
     position fixed
     top 50%
     left 50%
-    transition transform(-50%, -50%)
+    transform translate(-50%, -50%)
     text-align center
     background-color #FFC737
     border-radius 50%
