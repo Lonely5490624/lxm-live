@@ -80,7 +80,7 @@
       .ctrl-item(v-if="(role === 0 || role === 1) && classBegin" :class="{active: openType === 'files'}" @click.stop="setOpenType('files')" rel="files")
         img.item-img(src="../../assets/images/room_course.png")
         .item-text 课件库
-      .ctrl-item(v-if="(role === 0 || role === 1) && classBegin" :class="{active: openType === 'tools'}" @click.stop="setOpenType('tools')" rel="tools")
+      .ctrl-item(v-if="(role === 0 || role === 1)" :class="{active: openType === 'tools'}" @click.stop="setOpenType('tools')" rel="tools")
         img.item-img(src="../../assets/images/room_tool.png")
         .item-text 工具箱
       .ctrl-item(v-if="(role === 0 || role === 1) && classBegin" :class="{active: openType === 'ctrls'}" @click.stop="setOpenType('ctrls')" rel="ctrls")
@@ -96,7 +96,7 @@
       LxmBtn.class-btn(v-if="classBegin && role === 2 && mySelf.raisehand" @onClick="raiseHand(false)") 取消
   StuList(v-if="openType === 'users'" :room="room" rel="users" :classBegin="classBegin")
   Courseware(v-if="openType === 'files'" :room="room" :currentFile="currentFile" rel="files")
-  Tools(v-if="openType === 'tools'" rel="tools" @showTools="data => {$emit('showTools', data);openType = false}")
+  Tools(v-if="openType === 'tools'" :room="room" rel="tools" @showTools="data => {$emit('showTools', data);openType = false}")
   Control(v-if="openType === 'ctrls'" rel="ctrls" :students="students" :room="room" @rewardUserAll="$emit('rewardUserAll')")
   Setting(v-if="openType === 'settings'" rel="settings" @close="openType = ''" :devices="devices" :room="room" @done="$emit('settinDone')")
 </template>

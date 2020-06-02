@@ -176,6 +176,30 @@
         flex-shrink 1
         margin-top 20px
         overflow hidden
+  .screen-share-box
+    width 160px
+    height 160px
+    position fixed
+    top 50%
+    left 50%
+    transition transform(-50%, -50%)
+    text-align center
+    background-color #FFC737
+    border-radius 50%
+    color #333
+    padding-top 50px
+    z-index 999
+    .stop-screen
+      display inline-block
+      width 80px
+      height 35px
+      line-height 35px
+      background-color #FDA203
+      color #fff
+      cursor pointer
+      font-size 14px
+      border-radius 18px
+      margin-top 20px
 </style>
 <style lang="stylus">
 .class-stu-videos
@@ -271,6 +295,12 @@
     transition all 1.5s ease-in-out
     width 10px
     height 10px
+.screen-container
+  position absolute
+  top 0
+  left 0
+  right 0
+  bottom 0
 </style>
 
 <template lang="pug">
@@ -316,6 +346,7 @@
             :outerInitHeight.once="initHeight"
             :fileImg="`https://doccdn.talk-cloud.net${currentFile.swfpath.replace(/\.(png|jpg)$/, '-'+currpage+'.$1')}`"
           )
+        #screenContainer.screen-container(v-if="screenShare")
         VideoPlayer(v-if="videoSrc" :room="room" :role="role" :src="videoSrc" @close="videoSrc = ''")
         AudioPlayer(v-if="audioSrc" :room="room" :role="role" :src="audioSrc" @close="audioSrc = ''")
         #classMediaBox.class-media-box
@@ -369,6 +400,9 @@
       .class-chart
         ChartRoom(:room="room" :students="students" :role="role" :muteAll="muteAll")
   //- #rewardDom.reward-dom
+  .screen-share-box(v-if="role === 0 && screenShare")
+    | 共享桌面中
+    .stop-screen(@click="stopShareScreen") 停止共享
 </template>
 
 <script>
@@ -444,7 +478,8 @@ export default {
       classBeginTime: 0,
       timer: null,
       classDuration: 0,
-      rewardSenging: false
+      rewardSenging: false,
+      screenShare: false
     }
   },
   computed: {
@@ -808,6 +843,31 @@ export default {
       if (e.userid === this.$store.state.user?.userData?.id) {
         this.$message.error('您已被请出房间')
         this.$router.back()
+      }
+    })
+    // 监听屏幕共享事件
+    this.room.addEventListener(TK.EVENT_TYPE.roomUserScreenStateChanged, e => {
+      console.log('哈哈', e)
+      if (e.message.type === 'screen') {
+        if (e.message.published){
+          this.screenShare = true
+          this.$nextTick(() => {
+            if (this.role !== 0) {
+              const id = e.message.userId
+              const screenDom = document.createElement('div')
+              screenDom.id = `screen${id}`
+              screenDom.style.width = '100%'
+              screenDom.style.height = '100%'
+              document.getElementById('screenContainer').appendChild(screenDom)
+              this.room.playRemoteScreen(id, screenDom.id, { loader: true }, err => {
+                console.log('播放共享屏幕失败', err)
+              })
+            }
+          })
+        } else {
+          const id = e.message.userId
+          this.room.unplayRemoteScreen(id)
+        }
       }
     })
   },
@@ -1196,6 +1256,11 @@ export default {
           document.body.removeChild(rewardDom)
         }, 1500);
       }, 100);
+    },
+    // 停止共享屏幕
+    stopShareScreen () {
+      this.screenShare = false
+      this.room.stopShareScreen()
     }
   }
 }

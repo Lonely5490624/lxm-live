@@ -56,10 +56,10 @@
     .item-icon
       i.icon-hold_qingdaqi
     .item-text 抢答器
-  //- .tool-item
-  //-   .item-icon
-  //-     i.icon-hold_table_share
-  //-   .item-text 屏幕共享
+  .tool-item(@click="startShareScreen")
+    .item-icon
+      i.icon-hold_table_share
+    .item-text 屏幕共享
   .tool-item(@click="$emit('showTools', 'xiaobaiban')")
     .item-icon
       i.icon-hold_xiaobaiban
@@ -68,5 +68,19 @@
 
 <script>
 export default {
+  props: {
+    room: Object
+  },
+  methods: {
+    // startShareScreen
+    // stopShareScreen
+    // playRemoteScreen
+    // unplayRemoteScreen
+    // 开始屏幕共享
+    startShareScreen() {
+      this.room.stopShareScreen()
+      this.room.startShareScreen()
+    }
+  }
 }
 </script>
